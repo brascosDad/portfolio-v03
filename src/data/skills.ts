@@ -1,0 +1,17 @@
+export const skills: string[] = [
+  "UX Design",
+  "Product Strategy",
+  "Design Systems",
+  "Prototyping",
+  "User Research",
+  "Figma",
+  "Interaction Design",
+  "Information Architecture",
+  "Usability Testing",
+  "Visual Design",
+  "Accessibility",
+  "Design Thinking",
+  "Wireframing",
+  "Data Visualization",
+  "Front-end Development",
+];

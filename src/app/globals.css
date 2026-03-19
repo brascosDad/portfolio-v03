@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Colors: Text ─────────────────────────── */
+  --color-text-primary: #222222;
+  --color-text-secondary: #696969;
+  --color-text-muted: #676767;
+
+  /* ── Colors: Accent ────────────────────────── */
+  --color-accent: #F23505;
+  --color-accent-hover: #F23205;
+
+  /* ── Colors: Background ────────────────────── */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F7F7F7;
+
+  /* ── Colors: Border ────────────────────────── */
+  --color-border: #E5E5E5;
+
+  /* ── Typography ────────────────────────────── */
+  --font-display: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Spacing ───────────────────────────────── */
+  --spacing-0: 0px;
+  --spacing-5: 5px;
+  --spacing-10: 10px;
+  --spacing-20: 20px;
+  --spacing-30: 30px;
+  --spacing-40: 40px;
+  --spacing-50: 50px;
+  --spacing-60: 60px;
+  --spacing-80: 80px;
+  --spacing-100: 100px;
+  --spacing-120: 120px;
+  --spacing-160: 160px;
+  --spacing-200: 200px;
+
+  /* ── Radii ─────────────────────────────────── */
+  --radius-sm: 10px;
+  --radius-md: 20px;
+  --radius-lg: 24px;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  text-decoration: none;
+  transition: font-weight 0.15s ease;
+}
+
+a:hover {
+  font-weight: 600;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: white;
+}
