@@ -23,7 +23,7 @@ function ArrowUpRight() {
 export function Nav() {
   return (
     <nav className="sticky top-0 z-50 bg-bg-primary/80 backdrop-blur-md border-b border-border/50">
-      <div className="flex items-center justify-between px-10 md:px-30 lg:px-60 py-10 md:py-[15px] lg:py-[15px]">
+      <div className="flex items-center justify-between px-10 md:px-30 lg:px-60 py-10 md:py-[15px] lg:py-[15px] max-w-[1440px] mx-auto">
         <Link href="/" className="flex items-center gap-10">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="Ernest Son" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px] lg:w-[32px] lg:h-[32px]" />
