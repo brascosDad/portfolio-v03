@@ -8,7 +8,7 @@ function ArrowUpRight() {
       viewBox="0 0 12 12"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="inline-block ml-1"
+      className="inline-block ml-[5px]"
     >
       <path
         d="M3.5 2.5H9.5V8.5M9.5 2.5L2.5 9.5"
@@ -23,45 +23,22 @@ function ArrowUpRight() {
 
 export function Footer() {
   return (
-    <footer className="border-t border-border">
-      <div className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-        <h2 className="text-3xl font-semibold tracking-tight md:text-4xl">
-          Let&apos;s work together
-        </h2>
-        <p className="mt-4 max-w-lg text-text-muted">
-          I&apos;m always open to discussing new projects, creative ideas, or
-          opportunities to be part of your vision.
-        </p>
-        <a
-          href={`mailto:${siteData.email}`}
-          className="mt-8 inline-flex items-center rounded-full bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-        >
-          Send me an email
-          <ArrowUpRight />
-        </a>
-        <div className="mt-16 flex flex-col gap-4 text-sm text-text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} {siteData.name}</p>
-          <div className="flex gap-6">
-            <a
-              href={siteData.linkedIn}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-text-primarytransition-colors"
-            >
-              LinkedIn
-              <ArrowUpRight />
-            </a>
-            <a
-              href={siteData.resumeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-text-primarytransition-colors"
-            >
-              Resume
-              <ArrowUpRight />
-            </a>
-          </div>
-        </div>
+    <footer className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-20 pb-10 md:pt-20 md:pb-10">
+      <h2 className="text-[16px] md:text-[18px] lg:text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
+        Let&apos;s work together
+      </h2>
+      <p className="mt-[10px] max-w-lg text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+        Do you have a problem you need to solve or a creative idea you need to bring to fruition? Let&apos;s talk!
+      </p>
+      <a
+        href={`mailto:${siteData.email}`}
+        className="mt-[30px] inline-flex items-center rounded-[16px] bg-accent px-6 py-3 text-[16px] md:text-[18px] lg:text-[20px] font-medium text-white transition-colors hover:bg-accent-hover"
+      >
+        Send me an email
+        <ArrowUpRight />
+      </a>
+      <div className="mt-[140px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">
+        <p>&copy; {new Date().getFullYear()} {siteData.name}</p>
       </div>
     </footer>
   );

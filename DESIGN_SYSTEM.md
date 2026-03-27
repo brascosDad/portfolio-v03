@@ -51,11 +51,10 @@
 
 | Level     | Example                                              | Desktop (lg) | Tablet (md) | Mobile (default) |
 | --------- | ---------------------------------------------------- | ------------ | ----------- | ---------------- |
-| Heading 1 | Role Descriptors (hero words)                        | 120px        | 100px       | 80px             |
-| Heading 2 | Name, Position, Location, Section designations       | 30px         | 26px        | 24px             |
-| H3        | Case Study titles                                    | 24px         | 20px        | 18px             |
-| H4        | Subtitles (Company, Role, Problem)                   | 16px         | 14px        | 12px             |
-| Body      | Nav links, button text, body copy, Core Skills       | 20px         | 18px        | 16px             |
+| Display   | Role Descriptors (hero words)                        | 120px        | 100px       | 80px             |
+| Heading   | "Let's work together", Case Study titles             | 24px         | 22px        | 20px             |
+| Body      | Section headers, subtitles, nav links, button text, body copy, metadata | 20px | 18px | 16px |
+| Caption   | Copyright, badges, fine print                        | 16px         | 14px        | 12px             |
 
 > Breakpoint mapping: Mobile = default, Tablet = `md:` (768px), Desktop = `lg:` (1024px)
 

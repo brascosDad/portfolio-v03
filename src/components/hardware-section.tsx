@@ -1,18 +1,17 @@
 import { hardware } from "@/data/hardware";
-import { SectionWrapper } from "./section-wrapper";
 import { HardwareCard } from "./hardware-card";
 
 export function HardwareSection() {
   return (
-    <SectionWrapper id="hardware">
-      <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-        Hardware Products
+    <section id="hardware" className="w-full bg-bg-primary max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 py-16 md:py-24">
+      <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
+        Beyond the Screen
       </h2>
-      <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-[0px] pt-[20px] grid gap-[20px] sm:grid-cols-2 lg:grid-cols-3">
         {hardware.map((item) => (
           <HardwareCard key={item.name} item={item} />
         ))}
       </div>
-    </SectionWrapper>
+    </section>
   );
 }

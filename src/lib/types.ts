@@ -20,6 +20,15 @@ export interface CaseStudySection {
   imageLabel?: string;
 }
 
+export interface BentoMediaItem {
+  type: "video" | "image" | "placeholder";
+  src?: string;
+  alt?: string;
+  scale?: number;
+  translateY?: number;
+  loopDelay?: number;
+}
+
 export interface CaseStudy {
   slug: string;
   title: string;
@@ -27,7 +36,11 @@ export interface CaseStudy {
   meta: CaseStudyMeta;
   problem: string;
   outcome: string;
+  problemPoints?: string[];
+  outcomePoints?: string[];
   sections: CaseStudySection[];
+  bentoLayout?: "hero-split" | "hero-hero" | "hero-triple";
+  bentoMedia?: BentoMediaItem[];
   nextSlug?: string;
   nextTitle?: string;
 }
@@ -40,6 +53,9 @@ export interface ExperienceEntry {
 
 export interface HardwareEntry {
   name: string;
-  description: string;
-  category: string;
+  company: string;
+  roles: string[];
+  image: string;
+  scale?: number;
+  translateY?: number;
 }

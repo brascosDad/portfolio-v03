@@ -5,6 +5,6 @@ export const siteData: SiteData = {
   title: "UX/Product Designer",
   bio: "I'm a product designer who cares deeply about craft, clarity, and making things that work beautifully for people. I've designed across enterprise, fintech, and automotive — always focused on turning complexity into simple, delightful experiences.",
   email: "ernestson@gmail.com",
-  linkedIn: "https://linkedin.com/in/ernestson",
-  resumeUrl: "#",
+  linkedIn: "https://www.linkedin.com/in/ernest-son/",
+  resumeUrl: "/Ernest-Son-resume.pdf",
 };
