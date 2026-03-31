@@ -11,7 +11,7 @@ const heroTextStyle = {
   letterSpacing: "-0.02em",
   textBoxTrim: "both" as const,
   textBoxEdge: "cap alphabetic" as const,
-};
+}as React.CSSProperties;
 
 const infoTextStyle = {
   lineHeight: 0.72,
