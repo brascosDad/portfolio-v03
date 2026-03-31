@@ -17,7 +17,7 @@ const infoTextStyle = {
   lineHeight: 0.72,
   textBoxTrim: "both" as const,
   textBoxEdge: "cap alphabetic" as const,
-};
+}as unknown as React.CSSProperties;
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
