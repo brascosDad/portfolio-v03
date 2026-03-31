@@ -1,57 +1,227 @@
-import type { CaseStudy } from "@/lib/types";
-import { SectionWrapper } from "./section-wrapper";
+"use client";
+
+import { useRef, useCallback, useState } from "react";
+import Link from "next/link";
+import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { CaseStudyMeta } from "./case-study-meta";
 import { CaseStudyBlock } from "./case-study-block";
 import { CaseStudyCta } from "./case-study-cta";
-import { PlaceholderImage } from "./placeholder-image";
-import { Footer } from "./footer";
+import { Lightbox } from "./lightbox";
 
 interface CaseStudyPageProps {
   study: CaseStudy;
 }
 
+function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleEnded = useCallback(() => {
+    if (media.loopDelay && videoRef.current) {
+      setTimeout(() => {
+        videoRef.current?.play();
+      }, media.loopDelay);
+    }
+  }, [media.loopDelay]);
+
+  if (media.type === "video" && media.src) {
+    const hasTransform = media.scale || media.translateY;
+    return (
+      <div className="overflow-hidden rounded-md bg-bg-secondary border border-border flex flex-col items-center justify-center px-[30px] pt-[20px] pb-[20px]">
+        <div className="overflow-hidden aspect-video w-full">
+          <video
+            ref={videoRef}
+            autoPlay
+            loop={!media.loopDelay}
+            muted
+            playsInline
+            className="w-full object-cover"
+            style={hasTransform ? {
+              transform: `scale(${media.scale ?? 1}) translateY(${media.translateY ?? 0}px)`,
+            } : undefined}
+            onEnded={media.loopDelay ? handleEnded : undefined}
+          >
+            <source src={media.src} />
+          </video>
+        </div>
+        {label && (
+          <p className="mt-[10px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">
+            {label}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  if (media.type === "image" && media.src) {
+    return (
+      <div className="overflow-hidden rounded-md bg-bg-secondary border border-border px-[30px] py-[20px]">
+        <img
+          src={media.src}
+          alt={media.alt || ""}
+          className="mx-auto object-contain rounded-lg"
+        />
+      </div>
+    );
+  }
+
+  return null;
+}
+
 export function CaseStudyPage({ study }: CaseStudyPageProps) {
+  const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
+
+  // Split title on " — " or " \u2014 " (em dash)
+  const displayTitle = study.title.split(/\s[—\u2014]\s/)[1] || study.title;
+
   return (
     <>
-      <SectionWrapper className="py-20 md:py-28">
-        <h1 className="text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
-          {study.title}
-        </h1>
-        <p className="mt-4 text-lg text-text-muted max-w-2xl">{study.subtitle}</p>
+      {/* Back link */}
+      <div className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[40px]">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted hover:text-text-primary transition-colors"
+        >
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 10H4M4 10L9 5M4 10L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
+        </Link>
+      </div>
 
-        <div className="mt-10">
+      {/* Header */}
+      <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[40px]">
+        <p className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
+          Case Study
+        </p>
+        <h1 className="mt-[10px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
+          {displayTitle}
+        </h1>
+
+        {/* Meta: Company, Role, Type */}
+        <div className="mt-[40px]">
           <CaseStudyMeta meta={study.meta} />
         </div>
 
-        <div className="mt-12">
-          <PlaceholderImage label="Hero image" aspect="wide" />
+        {/* The Brief */}
+        {study.brief && (
+          <div className="mt-[40px] md:mt-[80px]">
+            <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+              The Brief
+            </h2>
+            <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+              {study.brief}
+            </p>
+          </div>
+        )}
+
+        {/* Divider */}
+        <hr className="mt-[40px] border-border" />
+      </section>
+
+      {/* Content sections — alternating image + text */}
+      <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 py-[60px]">
+        {(() => {
+          const insertIdx = study.solutionInsertIndex ?? study.sections.length;
+          const preSections = study.sections.slice(0, insertIdx);
+          const postSections = study.sections.slice(insertIdx);
+          return (
+            <>
+              <div className="space-y-[60px]">
+                {preSections.map((section, i) => (
+                  <CaseStudyBlock key={section.heading} section={section} index={i} />
+                ))}
+              </div>
+
+              {/* Solution section (optional) */}
+              {study.solutionHeading && study.solutionBody && (
+                <div className="mt-[60px]">
+                  <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+                    {study.solutionHeading}
+                  </h3>
+                  <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                    {study.solutionBody}
+                  </p>
+                  {study.solutionImages && study.solutionImages.length > 0 && (
+                    <div className={`mt-[30px] grid gap-[20px] ${study.solutionImages.length > 1 ? "md:grid-cols-2" : "grid-cols-1"}`}>
+                      {study.solutionImages.map((img) => (
+                        <button
+                          key={img.src}
+                          onClick={() => setLightboxSrc({ src: img.src, alt: img.label })}
+                          className="overflow-hidden rounded-md bg-bg-secondary border border-border cursor-zoom-in"
+                        >
+                          <img
+                            src={img.src}
+                            alt={img.label}
+                            className="w-full object-contain"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {postSections.length > 0 && (
+                <div className="mt-[60px] space-y-[60px]">
+                  {postSections.map((section, i) => (
+                    <CaseStudyBlock key={section.heading} section={section} index={insertIdx + i} />
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
+
+        {/* Animation / video block (only if no solution section) */}
+        {!study.solutionHeading && study.bentoMedia && study.bentoMedia.length > 0 && (
+          <div className="mt-[60px]">
+            <MediaBlock
+              media={study.bentoMedia[0]}
+              label="One Tool, One Flow — interaction demo"
+            />
+          </div>
+        )}
+
+        {/* The Result block */}
+        <div className="mt-[60px] rounded-md bg-bg-secondary p-[30px]">
+          <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+            The Result
+          </h2>
+          {study.metrics ? (
+            <div className="mt-[20px] flex gap-[40px] md:gap-[60px]">
+              {study.metrics.map((metric) => (
+                <div key={metric.label} className="flex flex-col gap-[5px]">
+                  <span className="text-[20px] md:text-[22px] lg:text-[24px] font-semibold text-text-primary">
+                    {metric.value}
+                  </span>
+                  <span className="text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">
+                    {metric.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-[10px] space-y-2">
+              {(study.outcomePoints || [study.outcome]).map((point, i) => (
+                <p key={i} className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                  {point}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className="mt-16 grid gap-8 md:grid-cols-2">
-          <div>
-            <h2 className="text-xs font-medium uppercase tracking-wider text-text-muted">
-              Problem
-            </h2>
-            <p className="mt-3 leading-relaxed">{study.problem}</p>
-          </div>
-          <div>
-            <h2 className="text-xs font-medium uppercase tracking-wider text-text-muted">
-              Outcome
-            </h2>
-            <p className="mt-3 leading-relaxed">{study.outcome}</p>
-          </div>
-        </div>
-      </SectionWrapper>
-
-      <SectionWrapper className="space-y-20">
-        {study.sections.map((section, i) => (
-          <CaseStudyBlock key={section.heading} section={section} index={i} />
-        ))}
-
+        {/* CTA */}
         <CaseStudyCta nextSlug={study.nextSlug} nextTitle={study.nextTitle} />
-      </SectionWrapper>
+      </section>
 
-      <Footer />
+      {lightboxSrc && (
+        <Lightbox
+          src={lightboxSrc.src}
+          alt={lightboxSrc.alt}
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
     </>
   );
 }

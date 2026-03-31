@@ -8,18 +8,20 @@ export function CaseStudyMeta({ meta }: CaseStudyMetaProps) {
   const items = [
     { label: "Company", value: meta.company },
     { label: "Role", value: meta.role },
-    { label: "Project Type", value: meta.projectType },
+    { label: "Type", value: meta.projectType },
     { label: "Year", value: meta.year },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+    <div className="flex gap-[30px] md:gap-[40px] lg:gap-[80px]">
       {items.map((item) => (
         <div key={item.label}>
-          <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
+          <h4 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium uppercase tracking-wider text-text-muted">
             {item.label}
+          </h4>
+          <p className="mt-[5px] md:mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-primary">
+            {item.value}
           </p>
-          <p className="mt-1 text-sm font-medium">{item.value}</p>
         </div>
       ))}
     </div>

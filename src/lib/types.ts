@@ -18,6 +18,11 @@ export interface CaseStudySection {
   heading: string;
   body: string;
   imageLabel?: string;
+  imageSrc?: string;
+  videoSrc?: string;
+  quotes?: string[];
+  portraitSrc?: string;
+  images?: { src: string; label: string }[];
 }
 
 export interface BentoMediaItem {
@@ -29,16 +34,32 @@ export interface BentoMediaItem {
   loopDelay?: number;
 }
 
+export interface SolutionImage {
+  src: string;
+  label: string;
+}
+
+export interface Metric {
+  value: string;
+  label: string;
+}
+
 export interface CaseStudy {
   slug: string;
   title: string;
   subtitle: string;
   meta: CaseStudyMeta;
+  brief?: string;
   problem: string;
   outcome: string;
   problemPoints?: string[];
   outcomePoints?: string[];
   sections: CaseStudySection[];
+  solutionHeading?: string;
+  solutionBody?: string;
+  solutionImages?: SolutionImage[];
+  metrics?: Metric[];
+  solutionInsertIndex?: number;
   bentoLayout?: "hero-split" | "hero-hero" | "hero-triple";
   bentoMedia?: BentoMediaItem[];
   nextSlug?: string;
