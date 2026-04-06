@@ -64,6 +64,10 @@ export interface CaseStudy {
   bentoMedia?: BentoMediaItem[];
   nextSlug?: string;
   nextTitle?: string;
+  eyebrow?: string;
+  thumbnails?: { label: string }[];
+  restricted?: boolean;
+  restrictedLabel?: string;
 }
 
 export interface ExperienceEntry {

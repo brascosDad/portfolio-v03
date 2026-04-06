@@ -206,6 +206,31 @@ export const caseStudies: CaseStudy[] = [
     ],
     solutionInsertIndex: 4,
   },
+  {
+    slug: "homedepot",
+    title: "Rethinking Job Search for Skilled Tradespeople",
+    subtitle: "Identifying and validating opportunity areas for the Path to Pro Network candidate experience.",
+    eyebrow: "The Home Depot \u00b7 2024\u20132025",
+    meta: {
+      company: "The Home Depot",
+      role: "Lead UX Designer",
+      projectType: "Design Sprint, Competitive Analysis, Usability Testing",
+      year: "2024\u20132025",
+    },
+    brief: "The Path to Pro Network was growing on the hiring side. Contractors and business owners were finding skilled labor through the platform \u2014 but the candidates they were looking for weren\u2019t showing up in the numbers we expected.",
+    problem: "Candidate experience was inherited and untested \u2014 no one knew what was working or where job seekers were dropping off",
+    outcome: "3 opportunity areas identified and validated, each moved to the product roadmap",
+    thumbnails: [
+      { label: "Apply flow" },
+      { label: "Profile builder" },
+    ],
+    restricted: true,
+    restrictedLabel: "Full case study on request",
+    bentoMedia: [
+      { type: "placeholder", alt: "The Home Depot \u2014 Path to Pro Network" },
+    ],
+    sections: [],
+  },
 ];
 
 export function getCaseStudy(slug: string): CaseStudy | undefined {

@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk } from "next/font/google";
+import { Hanken_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
 
 const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
   variable: "--font-hanken",
+});
+
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={hankenGrotesk.variable}>
+    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable}`}>
       <body>
         <Nav />
         <main>{children}</main>
