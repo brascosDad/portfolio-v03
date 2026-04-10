@@ -23,15 +23,20 @@ export interface CaseStudySection {
   quotes?: string[];
   portraitSrc?: string;
   images?: { src: string; label: string }[];
+  customComponent?: string;
+  subtitle?: string;
+  bodyExtra?: string;
+  gateBlock?: { heading: string; body: string };
 }
 
 export interface BentoMediaItem {
-  type: "video" | "image" | "placeholder";
+  type: "video" | "image" | "placeholder" | "component";
   src?: string;
   alt?: string;
   scale?: number;
   translateY?: number;
   loopDelay?: number;
+  componentId?: string;
 }
 
 export interface SolutionImage {
@@ -60,14 +65,10 @@ export interface CaseStudy {
   solutionImages?: SolutionImage[];
   metrics?: Metric[];
   solutionInsertIndex?: number;
-  bentoLayout?: "hero-split" | "hero-hero" | "hero-triple";
+  bentoLayout?: "hero-split" | "hero-hero" | "hero-triple" | "side-by-side";
   bentoMedia?: BentoMediaItem[];
   nextSlug?: string;
   nextTitle?: string;
-  eyebrow?: string;
-  thumbnails?: { label: string }[];
-  restricted?: boolean;
-  restrictedLabel?: string;
 }
 
 export interface ExperienceEntry {

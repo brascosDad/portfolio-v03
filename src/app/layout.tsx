@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Roboto } from "next/font/google";
+import { Hanken_Grotesk, Roboto, Alfa_Slab_One } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
 
@@ -12,6 +12,12 @@ const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "500", "700"],
   variable: "--font-roboto",
+});
+
+const alfaSlabOne = Alfa_Slab_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-alpha-slab",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable}`}>
+    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable} ${alfaSlabOne.variable}`}>
       <body>
         <Nav />
         <main>{children}</main>

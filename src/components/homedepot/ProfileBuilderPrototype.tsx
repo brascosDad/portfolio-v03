@@ -261,6 +261,40 @@ function SparkleIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+function StatusBar() {
+  return (
+    <div className="flex items-center justify-between px-[24px] shrink-0" style={{ height: 44, backgroundColor: "#fff" }}>
+      <span style={{ fontSize: 15, fontWeight: 600, color: "#222", letterSpacing: 0.5 }}>9:41</span>
+      <div className="flex items-center" style={{ gap: 6 }}>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
+          <rect x="0" y="9" width="3" height="3" rx="0.5" fill="#222" />
+          <rect x="4.5" y="6" width="3" height="6" rx="0.5" fill="#222" />
+          <rect x="9" y="3" width="3" height="9" rx="0.5" fill="#222" />
+          <rect x="13.5" y="0" width="3" height="12" rx="0.5" fill="#222" />
+        </svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+          <path d="M8 11a1 1 0 100-2 1 1 0 000 2z" fill="#222" />
+          <path d="M5 8.5a4.2 4.2 0 016 0" stroke="#222" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M2.5 6a7.5 7.5 0 0111 0" stroke="#222" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+        <svg width="27" height="13" viewBox="0 0 27 13" fill="none">
+          <rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="#222" strokeOpacity="0.35" />
+          <rect x="2" y="2" width="19" height="9" rx="1.5" fill="#222" />
+          <path d="M24 4.5v4a2.5 2.5 0 000-4z" fill="#222" opacity="0.4" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function HomeIndicator() {
+  return (
+    <div className="flex items-end justify-center shrink-0" style={{ height: 34, backgroundColor: "#fff" }}>
+      <div style={{ width: 134, height: 5, borderRadius: 100, backgroundColor: "#222", marginBottom: 8 }} />
+    </div>
+  );
+}
+
 // ── Shared chrome ──────────────────────────────────────────────────────────────
 function NavBar() {
   return (
@@ -274,7 +308,7 @@ function NavBar() {
       }}
     >
       <HamburgerIcon />
-      <CrateIcon />
+      <span style={{ fontFamily: "var(--font-alpha-slab), serif", fontSize: 22, color: "#222", lineHeight: 1 }}>JD</span>
       <div
         className="flex items-center justify-center"
         style={{
@@ -283,7 +317,7 @@ function NavBar() {
           borderRadius: "50%",
           backgroundColor: "#1a3a6e",
           color: "#fff",
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 700,
         }}
       >
@@ -305,23 +339,23 @@ function AppFooter() {
     >
       <div className="flex flex-col items-center cursor-pointer">
         <HomeIcon />
-        <span style={{ fontSize: 10, color: "#999", marginTop: 2 }}>Home</span>
+        <span style={{ fontSize: 11, color: "#767676", marginTop: 2 }}>Home</span>
       </div>
       <div className="flex flex-col items-center cursor-pointer">
         <SearchIcon />
-        <span style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
+        <span style={{ fontSize: 11, color: "#767676", marginTop: 2 }}>
           Search
         </span>
       </div>
       <div className="flex flex-col items-center cursor-pointer">
         <SavedIcon />
-        <span style={{ fontSize: 10, color: "#999", marginTop: 2 }}>
+        <span style={{ fontSize: 11, color: "#767676", marginTop: 2 }}>
           Saved
         </span>
       </div>
       <div className="flex flex-col items-center cursor-pointer">
         <ProfileIcon active />
-        <span style={{ fontSize: 10, color: "#1a3a6e", marginTop: 2 }}>
+        <span style={{ fontSize: 11, color: "#1a3a6e", marginTop: 2 }}>
           Profile
         </span>
       </div>
@@ -470,7 +504,7 @@ export function ProfileBuilderPrototype() {
         >
           <h2
             style={{
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: 700,
               color: "#222",
               marginBottom: 6,
@@ -478,7 +512,7 @@ export function ProfileBuilderPrototype() {
           >
             What trades do you work in?
           </h2>
-          <p style={{ fontSize: 14, color: "#666", marginBottom: 24 }}>
+          <p style={{ fontSize: 15, color: "#666", marginBottom: 24 }}>
             Select all that apply
           </p>
 
@@ -501,10 +535,10 @@ export function ProfileBuilderPrototype() {
                   style={{
                     border: isSelected
                       ? "1px solid #1a3a6e"
-                      : "1px solid #e0e0e0",
+                      : "1px solid #949494",
                     borderRadius: 9999,
                     padding: "12px 20px",
-                    fontSize: 16,
+                    fontSize: 17,
                     color: isSelected ? "#fff" : "#444",
                     backgroundColor: isSelected ? "#1a3a6e" : "transparent",
                     textAlign: "center",
@@ -529,7 +563,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#1a3a6e",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -578,7 +612,7 @@ export function ProfileBuilderPrototype() {
                 style={{
                   backgroundColor: "#eef2ff",
                   color: "#1a3a6e",
-                  fontSize: 13,
+                  fontSize: 14,
                   padding: "4px 10px",
                   borderRadius: 9999,
                 }}
@@ -590,7 +624,7 @@ export function ProfileBuilderPrototype() {
 
           <h2
             style={{
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: 700,
               color: "#222",
               marginBottom: 20,
@@ -615,7 +649,7 @@ export function ProfileBuilderPrototype() {
                   width: "100%",
                   border: isSelected
                     ? "1px solid #1a3a6e"
-                    : "1px solid #e8e8e8",
+                    : "1px solid #949494",
                   borderRadius: 12,
                   padding: 16,
                   marginBottom: 8,
@@ -633,7 +667,7 @@ export function ProfileBuilderPrototype() {
                     borderRadius: "50%",
                     border: isSelected
                       ? "2px solid #1a3a6e"
-                      : "2px solid #ccc",
+                      : "2px solid #949494",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -653,11 +687,11 @@ export function ProfileBuilderPrototype() {
                 </div>
                 <div>
                   <div
-                    style={{ fontSize: 16, fontWeight: 700, color: "#222" }}
+                    style={{ fontSize: 17, fontWeight: 700, color: "#222" }}
                   >
                     {opt.label}
                   </div>
-                  <div style={{ fontSize: 14, color: "#666", marginTop: 2 }}>
+                  <div style={{ fontSize: 15, color: "#666", marginTop: 2 }}>
                     {opt.range}
                   </div>
                 </div>
@@ -676,7 +710,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#1a3a6e",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -719,7 +753,7 @@ export function ProfileBuilderPrototype() {
 
           <h2
             style={{
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: 700,
               color: "#222",
               marginBottom: 6,
@@ -727,7 +761,7 @@ export function ProfileBuilderPrototype() {
           >
             Describe your work style
           </h2>
-          <p style={{ fontSize: 14, color: "#666", marginBottom: 20 }}>
+          <p style={{ fontSize: 15, color: "#666", marginBottom: 20 }}>
             Write a short description of how you work, or let AI help you craft
             one.
           </p>
@@ -740,10 +774,10 @@ export function ProfileBuilderPrototype() {
             style={{
               width: "100%",
               minHeight: 160,
-              border: "1px solid #e0e0e0",
+              border: "1px solid #949494",
               borderRadius: 12,
               padding: 16,
-              fontSize: 16,
+              fontSize: 17,
               color: "#222",
               resize: "vertical",
               outline: "none",
@@ -765,7 +799,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#1a3a6e",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -784,11 +818,11 @@ export function ProfileBuilderPrototype() {
             className="flex items-center"
             style={{ margin: "20px 0", gap: 12 }}
           >
-            <div style={{ flex: 1, height: 1, backgroundColor: "#e0e0e0" }} />
-            <span style={{ fontSize: 14, color: "#999", whiteSpace: "nowrap" }}>
+            <div style={{ flex: 1, height: 1, backgroundColor: "#949494" }} />
+            <span style={{ fontSize: 15, color: "#767676", whiteSpace: "nowrap" }}>
               or get AI help
             </span>
-            <div style={{ flex: 1, height: 1, backgroundColor: "#e0e0e0" }} />
+            <div style={{ flex: 1, height: 1, backgroundColor: "#949494" }} />
           </div>
 
           {/* AI Assist button */}
@@ -800,7 +834,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#222",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -834,7 +868,7 @@ export function ProfileBuilderPrototype() {
             />
           ))}
         </div>
-        <p style={{ fontSize: 16, color: "#666" }}>{text}</p>
+        <p style={{ fontSize: 17, color: "#666" }}>{text}</p>
       </div>
     );
   }
@@ -868,7 +902,7 @@ export function ProfileBuilderPrototype() {
             style={{
               backgroundColor: "#f0f0ff",
               color: "#6366f1",
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: 500,
               padding: "2px 8px",
               borderRadius: 9999,
@@ -882,7 +916,7 @@ export function ProfileBuilderPrototype() {
 
           <h2
             style={{
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: 700,
               color: "#222",
               marginBottom: 16,
@@ -895,7 +929,7 @@ export function ProfileBuilderPrototype() {
           <div
             style={{
               backgroundColor: "#f9f9f9",
-              border: "1px solid #e8e8e8",
+              border: "1px solid #949494",
               borderRadius: 12,
               padding: 16,
               marginBottom: 24,
@@ -903,7 +937,7 @@ export function ProfileBuilderPrototype() {
           >
             <p
               style={{
-                fontSize: 16,
+                fontSize: 17,
                 color: "#444",
                 fontStyle: "italic",
                 lineHeight: 1.6,
@@ -922,10 +956,10 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "transparent",
               color: "#666",
-              fontSize: 16,
+              fontSize: 17,
               borderRadius: 9999,
               padding: "14px 0",
-              border: "1px solid #e0e0e0",
+              border: "1px solid #949494",
               marginBottom: 8,
             }}
           >
@@ -944,7 +978,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#1a3a6e",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -968,7 +1002,7 @@ export function ProfileBuilderPrototype() {
               background: "none",
               border: "none",
               color: "#1a3a6e",
-              fontSize: 14,
+              fontSize: 15,
               textDecoration: "underline",
               padding: "8px 0",
               textAlign: "center",
@@ -1010,7 +1044,7 @@ export function ProfileBuilderPrototype() {
             style={{
               backgroundColor: "#f0f0ff",
               color: "#6366f1",
-              fontSize: 12,
+              fontSize: 14,
               fontWeight: 500,
               padding: "2px 8px",
               borderRadius: 9999,
@@ -1024,7 +1058,7 @@ export function ProfileBuilderPrototype() {
 
           <h2
             style={{
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: 700,
               color: "#222",
               marginBottom: 16,
@@ -1037,7 +1071,7 @@ export function ProfileBuilderPrototype() {
           <div
             style={{
               backgroundColor: "#f9f9f9",
-              border: "1px solid #e8e8e8",
+              border: "1px solid #949494",
               borderRadius: 12,
               padding: 16,
               marginBottom: 24,
@@ -1045,7 +1079,7 @@ export function ProfileBuilderPrototype() {
           >
             <p
               style={{
-                fontSize: 16,
+                fontSize: 17,
                 color: "#444",
                 fontStyle: "italic",
                 lineHeight: 1.6,
@@ -1067,7 +1101,7 @@ export function ProfileBuilderPrototype() {
               width: "100%",
               backgroundColor: "#1a3a6e",
               color: "#fff",
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: 700,
               borderRadius: 9999,
               padding: "14px 0",
@@ -1091,7 +1125,7 @@ export function ProfileBuilderPrototype() {
               background: "none",
               border: "none",
               color: "#1a3a6e",
-              fontSize: 14,
+              fontSize: 15,
               textDecoration: "underline",
               padding: "8px 0",
               textAlign: "center",
@@ -1127,7 +1161,7 @@ export function ProfileBuilderPrototype() {
 
           <h2
             style={{
-              fontSize: 22,
+              fontSize: 23,
               fontWeight: 700,
               color: "#222",
               marginTop: 20,
@@ -1141,7 +1175,7 @@ export function ProfileBuilderPrototype() {
             style={{
               width: "100%",
               backgroundColor: "#fff",
-              border: "1px solid #e8e8e8",
+              border: "1px solid #949494",
               borderRadius: 12,
               padding: 16,
               marginTop: 24,
@@ -1149,7 +1183,7 @@ export function ProfileBuilderPrototype() {
             }}
           >
             <div
-              style={{ fontSize: 18, fontWeight: 700, color: "#222" }}
+              style={{ fontSize: 19, fontWeight: 700, color: "#222" }}
             >
               Sarah Rivera
             </div>
@@ -1165,7 +1199,7 @@ export function ProfileBuilderPrototype() {
                   style={{
                     backgroundColor: "#eef2ff",
                     color: "#1a3a6e",
-                    fontSize: 13,
+                    fontSize: 14,
                     padding: "4px 10px",
                     borderRadius: 9999,
                   }}
@@ -1177,7 +1211,7 @@ export function ProfileBuilderPrototype() {
 
             {/* Experience */}
             {experienceLevel && (
-              <div style={{ fontSize: 14, color: "#666", marginTop: 8 }}>
+              <div style={{ fontSize: 15, color: "#666", marginTop: 8 }}>
                 {experienceLevel} &middot; {getExperienceRange(experienceLevel)}
               </div>
             )}
@@ -1186,7 +1220,7 @@ export function ProfileBuilderPrototype() {
             {acceptedText && (
               <p
                 style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   color: "#444",
                   fontStyle: "italic",
                   marginTop: 8,
@@ -1209,7 +1243,7 @@ export function ProfileBuilderPrototype() {
               background: "none",
               border: "none",
               color: "#1a3a6e",
-              fontSize: 16,
+              fontSize: 17,
             }}
           >
             &larr; Start over
@@ -1251,11 +1285,7 @@ export function ProfileBuilderPrototype() {
   return (
     <div
       className="flex items-center justify-center"
-      style={{
-        backgroundColor: "#f7f7f7",
-        padding: "40px 0",
-        fontFamily: "var(--font-roboto)",
-      }}
+      style={{ fontFamily: "var(--font-roboto)" }}
     >
       {/* Inject keyframes */}
       <style>{PULSE_KEYFRAMES}</style>
@@ -1266,7 +1296,7 @@ export function ProfileBuilderPrototype() {
           width: 390,
           height: 780,
           borderRadius: 40,
-          border: "1px solid #e0e0e0",
+          border: "1px solid #949494",
           backgroundColor: "#fff",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
@@ -1275,6 +1305,7 @@ export function ProfileBuilderPrototype() {
           position: "relative",
         }}
       >
+        <StatusBar />
         <NavBar />
 
         {/* Screen container */}
@@ -1312,6 +1343,7 @@ export function ProfileBuilderPrototype() {
         </div>
 
         <AppFooter />
+        <HomeIndicator />
       </div>
     </div>
   );

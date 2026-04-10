@@ -1,9 +1,26 @@
 "use client";
 
 import { useRef, useCallback, useState } from "react";
+import dynamic from "next/dynamic";
 import type { CaseStudySection } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { Lightbox } from "./lightbox";
+
+const CompetitiveGrid = dynamic(
+  () => import("./homedepot/CompetitiveGrid").then((m) => m.CompetitiveGrid),
+);
+const SprintStructure = dynamic(
+  () => import("./homedepot/SprintStructure").then((m) => m.SprintStructure),
+);
+const PrototypesShowcase = dynamic(
+  () => import("./homedepot/PrototypesShowcase").then((m) => m.PrototypesShowcase),
+);
+
+const customComponentMap: Record<string, React.ComponentType> = {
+  "competitive-grid": CompetitiveGrid,
+  "sprint-structure": SprintStructure,
+  "prototypes": PrototypesShowcase,
+};
 
 interface CaseStudyBlockProps {
   section: CaseStudySection;
@@ -29,7 +46,57 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
     setLightboxOpen(true);
   };
 
-  // Render the media/asset side
+  // Custom component layout: full-width stacked
+  if (section.customComponent) {
+    const CustomComponent = customComponentMap[section.customComponent];
+    return (
+      <>
+        <div>
+          {section.subtitle && (
+            <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-secondary italic mb-[4px]">
+              {section.subtitle}
+            </p>
+          )}
+          <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+            {section.heading}
+          </h3>
+          <div className="mt-[16px] max-w-[720px]">
+            <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+              {section.body}
+            </p>
+            {section.bodyExtra && (
+              <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                {section.bodyExtra}
+              </p>
+            )}
+          </div>
+          {CustomComponent && (
+            <div className="mt-[30px]">
+              <CustomComponent />
+            </div>
+          )}
+          {section.gateBlock && (
+            <div className="mt-[40px] rounded-md border border-border bg-bg-secondary p-[24px] md:p-[30px] flex items-start gap-[16px]">
+              <svg className="w-[20px] h-[20px] text-text-muted flex-shrink-0 mt-[2px]" viewBox="0 0 16 16" fill="none">
+                <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+                <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+              </svg>
+              <div>
+                <p className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+                  {section.gateBlock.heading}
+                </p>
+                <p className="mt-[8px] text-[14px] md:text-[16px] text-text-muted leading-snug">
+                  {section.gateBlock.body}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  // Standard 2-column alternating layout
   const renderMedia = () => {
     // Quote block with portrait
     if (section.quotes && section.quotes.length > 0) {
