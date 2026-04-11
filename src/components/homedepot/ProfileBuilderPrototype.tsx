@@ -12,6 +12,13 @@ const TRADES = [
   "HVAC",
   "General Labor",
   "Painting",
+  "Welding",
+  "Roofing",
+  "Masonry",
+  "Flooring",
+  "Drywall",
+  "Landscaping",
+  "Concrete",
 ] as const;
 
 type Trade = (typeof TRADES)[number];
@@ -516,13 +523,7 @@ export function ProfileBuilderPrototype() {
             Select all that apply
           </p>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {TRADES.map((trade, idx) => {
               const isSelected = selectedTrades.includes(trade);
               const showPulse = pulseActive && idx === 0 && !isSelected;
@@ -533,19 +534,41 @@ export function ProfileBuilderPrototype() {
                   onClick={() => toggleTrade(trade)}
                   className="cursor-pointer"
                   style={{
-                    border: isSelected
-                      ? "1px solid #1a3a6e"
-                      : "1px solid #949494",
-                    borderRadius: 9999,
-                    padding: "12px 20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    width: "100%",
+                    border: isSelected ? "1px solid #1a3a6e" : "1px solid #949494",
+                    borderRadius: 10,
+                    padding: "12px 14px",
                     fontSize: 17,
-                    color: isSelected ? "#fff" : "#444",
-                    backgroundColor: isSelected ? "#1a3a6e" : "transparent",
-                    textAlign: "center",
+                    color: isSelected ? "#222" : "#444",
+                    backgroundColor: isSelected ? "#f8faff" : "transparent",
+                    textAlign: "left",
                     transition: "all 0.15s ease",
                     animation: showPulse ? "pillPulse 1.8s infinite" : "none",
                   }}
                 >
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 4,
+                      border: isSelected ? "2px solid #1a3a6e" : "2px solid #949494",
+                      backgroundColor: isSelected ? "#1a3a6e" : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {isSelected && (
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
                   {trade}
                 </button>
               );
