@@ -403,9 +403,8 @@ export function ProfileBuilderPrototype() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const [selectedTrades, setSelectedTrades] = useState<Trade[]>([]);
-  const [experienceLevel, setExperienceLevel] = useState<ExperienceLabel | "">(
-    ""
-  );
+  const [experienceLevels, setExperienceLevels] = useState<Record<string, string>>({});
+  const [currentTradeIdx, setCurrentTradeIdx] = useState(0);
   const [userText, setUserText] = useState("");
   const [aiText, setAiText] = useState("");
   const [aiTextAlt, setAiTextAlt] = useState("");
@@ -444,17 +443,26 @@ export function ProfileBuilderPrototype() {
     }
   }, [currentScreen, navigateTo]);
 
+  // Compute primary experience level for AI text
+  const primaryExperience = (() => {
+    const levels = Object.values(experienceLevels);
+    if (levels.length === 0) return "";
+    const order = ["Expert", "Experienced", "Intermediate", "Entry level"];
+    for (const l of order) if (levels.includes(l)) return l;
+    return levels[0] || "";
+  })();
+
   // Generate AI text when entering Screen 4 (index 3)
   useEffect(() => {
     if (currentScreen === 3) {
       setAiText(
-        generatePrimaryAiText(selectedTrades, userText, experienceLevel)
+        generatePrimaryAiText(selectedTrades, userText, primaryExperience)
       );
       setAiTextAlt(
-        generateAltAiText(selectedTrades, userText, experienceLevel)
+        generateAltAiText(selectedTrades, userText, primaryExperience)
       );
     }
-  }, [currentScreen, selectedTrades, userText, experienceLevel]);
+  }, [currentScreen, selectedTrades, userText, primaryExperience]);
 
   // Trade toggle
   const toggleTrade = (trade: Trade) => {
@@ -467,7 +475,8 @@ export function ProfileBuilderPrototype() {
   // Reset all state
   const resetAll = () => {
     setSelectedTrades([]);
-    setExperienceLevel("");
+    setExperienceLevels({});
+    setCurrentTradeIdx(0);
     setUserText("");
     setAiText("");
     setAiTextAlt("");
@@ -480,21 +489,21 @@ export function ProfileBuilderPrototype() {
   function renderScreen(screenIndex: ScreenIndex) {
     switch (screenIndex) {
       case 0:
-        return <ScreenTradeSelection />;
+        return ScreenTradeSelection();
       case 1:
-        return <ScreenExperience />;
+        return ScreenExperience();
       case 2:
-        return <ScreenWorkStyle />;
+        return ScreenWorkStyle();
       case 3:
-        return <ScreenLoading text="Crafting your description..." />;
+        return ScreenLoading("Crafting your description...");
       case 4:
-        return <ScreenAiResult1 />;
+        return ScreenAiResult1();
       case 5:
-        return <ScreenLoading text="Trying a different approach..." />;
+        return ScreenLoading("Trying a different approach...");
       case 6:
-        return <ScreenAiResult2 />;
+        return ScreenAiResult2();
       case 7:
-        return <ScreenComplete />;
+        return ScreenComplete();
       default:
         return null;
     }
@@ -579,7 +588,7 @@ export function ProfileBuilderPrototype() {
         <div style={{ padding: "16px 20px" }}>
           <button
             type="button"
-            onClick={() => navigateTo(1, "left")}
+            onClick={() => { setCurrentTradeIdx(0); navigateTo(1, "left"); }}
             disabled={!hasSelection}
             className="cursor-pointer"
             style={{
@@ -603,9 +612,33 @@ export function ProfileBuilderPrototype() {
     );
   }
 
-  // ── Screen 2: Experience ───────────────────────────────────────────────────
+  // ── Screen 2: Experience (per-trade) ───────────────────────────────────────
   function ScreenExperience() {
-    const hasSelection = experienceLevel !== "";
+    const currentTrade = selectedTrades[currentTradeIdx];
+    const currentLevel = currentTrade ? experienceLevels[currentTrade] || "" : "";
+    const hasSelection = currentLevel !== "";
+    const isLastTrade = currentTradeIdx >= selectedTrades.length - 1;
+
+    const handleBack = () => {
+      if (currentTradeIdx > 0) {
+        setCurrentTradeIdx(currentTradeIdx - 1);
+      } else {
+        navigateTo(0, "right");
+      }
+    };
+
+    const handleNext = () => {
+      if (isLastTrade) {
+        navigateTo(2, "left");
+      } else {
+        setCurrentTradeIdx(currentTradeIdx + 1);
+      }
+    };
+
+    const selectLevel = (label: string) => {
+      setExperienceLevels((prev) => ({ ...prev, [currentTrade]: label }));
+    };
+
     return (
       <div className="flex flex-col h-full">
         <div
@@ -615,7 +648,7 @@ export function ProfileBuilderPrototype() {
           {/* Back arrow */}
           <button
             type="button"
-            onClick={() => navigateTo(0, "right")}
+            onClick={handleBack}
             className="cursor-pointer"
             style={{
               background: "none",
@@ -627,22 +660,27 @@ export function ProfileBuilderPrototype() {
             <BackArrow />
           </button>
 
-          {/* Trade tags */}
+          {/* Progress: trade tags */}
           <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 16 }}>
-            {selectedTrades.map((trade) => (
-              <span
-                key={trade}
-                style={{
-                  backgroundColor: "#eef2ff",
-                  color: "#1a3a6e",
-                  fontSize: 14,
-                  padding: "4px 10px",
-                  borderRadius: 9999,
-                }}
-              >
-                {trade}
-              </span>
-            ))}
+            {selectedTrades.map((trade, idx) => {
+              const isDone = idx < currentTradeIdx;
+              const isCurrent = idx === currentTradeIdx;
+              return (
+                <span
+                  key={trade}
+                  style={{
+                    backgroundColor: isCurrent ? "#1a3a6e" : isDone ? "#dbeafe" : "#f0f0f0",
+                    color: isCurrent ? "#fff" : isDone ? "#1a3a6e" : "#999",
+                    fontSize: 14,
+                    padding: "4px 10px",
+                    borderRadius: 9999,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {isDone ? `✓ ${trade}` : trade}
+                </span>
+              );
+            })}
           </div>
 
           <h2
@@ -653,18 +691,16 @@ export function ProfileBuilderPrototype() {
               marginBottom: 20,
             }}
           >
-            How much experience do you have?
+            How much {currentTrade} experience do you have?
           </h2>
 
           {EXPERIENCE_OPTIONS.map((opt) => {
-            const isSelected = experienceLevel === opt.label;
+            const isSelected = currentLevel === opt.label;
             return (
               <button
                 key={opt.label}
                 type="button"
-                onClick={() =>
-                  setExperienceLevel(opt.label as ExperienceLabel)
-                }
+                onClick={() => selectLevel(opt.label)}
                 className="cursor-pointer"
                 style={{
                   display: "flex",
@@ -726,7 +762,7 @@ export function ProfileBuilderPrototype() {
         <div style={{ padding: "16px 20px" }}>
           <button
             type="button"
-            onClick={() => navigateTo(2, "left")}
+            onClick={handleNext}
             disabled={!hasSelection}
             className="cursor-pointer"
             style={{
@@ -874,7 +910,7 @@ export function ProfileBuilderPrototype() {
   }
 
   // ── Screen 4 & 6: Loading ─────────────────────────────────────────────────
-  function ScreenLoading({ text }: { text: string }) {
+  function ScreenLoading(text: string) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
         <div className="flex" style={{ gap: 8, marginBottom: 20 }}>
@@ -1232,10 +1268,18 @@ export function ProfileBuilderPrototype() {
               ))}
             </div>
 
-            {/* Experience */}
-            {experienceLevel && (
-              <div style={{ fontSize: 15, color: "#666", marginTop: 8 }}>
-                {experienceLevel} &middot; {getExperienceRange(experienceLevel)}
+            {/* Per-trade experience */}
+            {selectedTrades.some((t) => experienceLevels[t]) && (
+              <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+                {selectedTrades.map((trade) => {
+                  const level = experienceLevels[trade];
+                  if (!level) return null;
+                  return (
+                    <div key={trade} style={{ fontSize: 14, color: "#666" }}>
+                      {trade}: {level} · {getExperienceRange(level)}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
