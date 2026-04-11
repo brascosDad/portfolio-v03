@@ -203,10 +203,10 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
           </h4>
           <div className="mt-[5px] md:mt-[20px] space-y-2">
             <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug">
-              Onboarding drop-off was at <LockButton onClick={openModal} />
+              Onboarding drop-off was <LockButton onClick={openModal} />% higher than desired
             </p>
             <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug">
-              <LockButton onClick={openModal} />% viewed job details but did not apply
+              Application rate was <LockButton onClick={openModal} />% lower than expected
             </p>
           </div>
         </div>
