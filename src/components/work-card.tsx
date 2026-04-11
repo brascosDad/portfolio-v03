@@ -108,8 +108,13 @@ export function WorkCard({ study }: WorkCardProps) {
 
   return (
     <div className="group pt-[10px]">
+      {/* Year */}
+      <p className="text-[12px] md:text-[14px] lg:text-[16px] font-medium tracking-wider text-text-secondary">
+        {study.meta.year}
+      </p>
+
       {/* Title */}
-      <h3 className="text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
+      <h3 className="mt-[5px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
         {study.title.split(/\s[—\u2014]\s/)[1] || study.title}
       </h3>
 

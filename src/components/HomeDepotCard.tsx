@@ -131,8 +131,13 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
 
   return (
     <div className="group pt-[10px]">
+      {/* Year */}
+      <p className="text-[12px] md:text-[14px] lg:text-[16px] font-medium tracking-wider text-text-secondary">
+        2025
+      </p>
+
       {/* Title */}
-      <h3 className="text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
+      <h3 className="mt-[5px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
         Rethinking Job Search for Skilled Tradespeople
       </h3>
 
