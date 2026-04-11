@@ -131,15 +131,22 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
 
   return (
     <div className="group pt-[10px]">
-      {/* Eyebrow */}
-      <p className="text-[12px] md:text-[14px] lg:text-[16px] font-medium tracking-wider text-text-secondary">
-        2024–2025
-      </p>
-
       {/* Title */}
-      <h3 className="mt-[5px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
+      <h3 className="text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
         Rethinking Job Search for Skilled Tradespeople
       </h3>
+
+      {/* AI tool badges */}
+      <div className="mt-[10px] flex flex-wrap gap-[8px]">
+        {aiTools.map((tool) => (
+          <span
+            key={tool}
+            className="px-[12px] py-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted bg-bg-secondary rounded-full"
+          >
+            {tool}
+          </span>
+        ))}
+      </div>
 
       {/* Interactive prototypes in phone frames */}
       <div className="mt-[20px] grid grid-cols-1 md:grid-cols-2 gap-[30px]">
@@ -226,23 +233,6 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
               </svg>
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* AI tools strip */}
-      <div className="mt-[30px] pt-[20px] border-t border-border flex items-center justify-between">
-        <span className="text-[12px] md:text-[14px] lg:text-[16px] font-medium uppercase tracking-wider text-text-muted">
-          AI tools
-        </span>
-        <div className="flex gap-[10px]">
-          {aiTools.map((tool) => (
-            <span
-              key={tool}
-              className="px-[12px] py-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted bg-bg-secondary rounded-full"
-            >
-              {tool}
-            </span>
-          ))}
         </div>
       </div>
 
