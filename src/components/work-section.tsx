@@ -8,7 +8,7 @@ export function WorkSection() {
       <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
         Case Studies
       </h2>
-      <div className="mt-[0px] flex flex-col gap-80 md:gap-120">
+      <div className="mt-[20px] flex flex-col gap-80 md:gap-120">
         {caseStudies.map((study) =>
           study.slug === "homedepot" ? (
             <HomeDepotCard key={study.slug} study={study} />
