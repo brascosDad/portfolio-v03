@@ -2,7 +2,15 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { CaseStudy } from "@/lib/types";
+
+const ApplyFlowPrototype = dynamic(
+  () => import("./homedepot/ApplyFlowPrototype").then((m) => m.ApplyFlowPrototype),
+);
+const ProfileBuilderPrototype = dynamic(
+  () => import("./homedepot/ProfileBuilderPrototype").then((m) => m.ProfileBuilderPrototype),
+);
 
 interface HomeDepotCardProps {
   study: CaseStudy;
@@ -118,18 +126,26 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
         Rethinking Job Search for Skilled Tradespeople
       </h3>
 
-      {/* Prototype preview frames */}
+      {/* Interactive prototypes */}
       <div className="mt-[20px] grid grid-cols-1 md:grid-cols-2 gap-[30px]">
-        <div className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[200px] md:h-[300px] flex items-center justify-center">
-          <p className="text-[14px] md:text-[16px] text-text-muted text-center">
-            Apply flow prototype · 4 screens · interactive
-          </p>
-        </div>
-        <div className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[200px] md:h-[300px] flex items-center justify-center">
-          <p className="text-[14px] md:text-[16px] text-text-muted text-center">
-            Profile builder prototype · 8 screens · AI assist
-          </p>
-        </div>
+        {([ApplyFlowPrototype, ProfileBuilderPrototype] as const).map((Component, i) => {
+          const s = 0.8;
+          return (
+            <div key={i} className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[350px] md:h-[700px] overflow-hidden flex items-center justify-center">
+              <div
+                className="relative overflow-hidden rounded-lg mx-auto"
+                style={{ width: Math.round(390 * s), height: Math.round(780 * s) }}
+              >
+                <div
+                  className="absolute top-0 left-0 origin-top-left"
+                  style={{ transform: `scale(${s})`, width: 390, height: 780 }}
+                >
+                  <Component />
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Meta row: Company, Role, Problem, Outcome */}
