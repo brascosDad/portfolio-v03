@@ -16,6 +16,21 @@ interface HomeDepotCardProps {
   study: CaseStudy;
 }
 
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative rounded-[44px] bg-[#1a1a1a] p-[8px] shadow-xl">
+      <div
+        className="relative rounded-[36px] overflow-hidden bg-white"
+        style={{ width: 390, height: 780 }}
+      >
+        {/* Dynamic island */}
+        <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-10" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function LockIcon({ size = 11 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
@@ -126,21 +141,25 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
         Rethinking Job Search for Skilled Tradespeople
       </h3>
 
-      {/* Interactive prototypes */}
+      {/* Interactive prototypes in phone frames */}
       <div className="mt-[20px] grid grid-cols-1 md:grid-cols-2 gap-[30px]">
         {([ApplyFlowPrototype, ProfileBuilderPrototype] as const).map((Component, i) => {
           const s = 0.8;
+          const phoneW = 390 + 16;
+          const phoneH = 780 + 16;
           return (
             <div key={i} className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[350px] md:h-[700px] overflow-hidden flex items-center justify-center">
               <div
-                className="relative overflow-hidden rounded-lg mx-auto"
-                style={{ width: Math.round(390 * s), height: Math.round(780 * s) }}
+                className="relative mx-auto"
+                style={{ width: Math.round(phoneW * s), height: Math.round(phoneH * s) }}
               >
                 <div
                   className="absolute top-0 left-0 origin-top-left"
-                  style={{ transform: `scale(${s})`, width: 390, height: 780 }}
+                  style={{ transform: `scale(${s})`, width: phoneW, height: phoneH }}
                 >
-                  <Component />
+                  <PhoneFrame>
+                    <Component />
+                  </PhoneFrame>
                 </div>
               </div>
             </div>
