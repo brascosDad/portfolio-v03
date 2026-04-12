@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type ScreenIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+type ScreenIndex = 0 | 1 | 2 | 3 | 7;
 
 const TRADES = [
   "Electrical",
@@ -268,6 +268,30 @@ function SparkleIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+function MultiColorSparkle({ size = 16 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      style={{ display: "inline-block", verticalAlign: "middle" }}
+    >
+      <defs>
+        <linearGradient id="pbSparkleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#6366f1" />
+          <stop offset="50%" stopColor="#ec4899" />
+          <stop offset="100%" stopColor="#f59e0b" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5L8 0Z"
+        fill="url(#pbSparkleGrad)"
+      />
+    </svg>
+  );
+}
+
 function StatusBar() {
   return (
     <div className="flex items-center justify-between px-[24px] shrink-0" style={{ height: 44, backgroundColor: "#fff" }}>
@@ -372,16 +396,9 @@ function AppFooter() {
 
 // ── Pulse animation style (injected once) ──────────────────────────────────────
 const PULSE_KEYFRAMES = `
-@keyframes pillPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(26, 58, 110, 0.35);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(26, 58, 110, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(26, 58, 110, 0);
-  }
+@keyframes pulseRing {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.08, 1.25); opacity: 0; }
 }
 @keyframes dotBounce {
   0%, 80%, 100% {
@@ -390,6 +407,11 @@ const PULSE_KEYFRAMES = `
   40% {
     transform: translateY(-10px);
   }
+}
+@keyframes buttonPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 `;
 
@@ -406,9 +428,8 @@ export function ProfileBuilderPrototype() {
   const [experienceLevels, setExperienceLevels] = useState<Record<string, string>>({});
   const [currentTradeIdx, setCurrentTradeIdx] = useState(0);
   const [userText, setUserText] = useState("");
-  const [aiText, setAiText] = useState("");
-  const [aiTextAlt, setAiTextAlt] = useState("");
   const [acceptedText, setAcceptedText] = useState("");
+  const [aiGenCount, setAiGenCount] = useState(0);
   const [pulseActive, setPulseActive] = useState(true);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -429,20 +450,6 @@ export function ProfileBuilderPrototype() {
     [currentScreen, isTransitioning]
   );
 
-  // Auto-advance for loading screens (4 → 5, 6 → 7)
-  useEffect(() => {
-    if (currentScreen === 3) {
-      // Screen 4 (index 3): loading
-      const timer = setTimeout(() => navigateTo(4, "left"), 2200);
-      return () => clearTimeout(timer);
-    }
-    if (currentScreen === 5) {
-      // Screen 6 (index 5): loading 2
-      const timer = setTimeout(() => navigateTo(6, "left"), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentScreen, navigateTo]);
-
   // Compute primary experience level for AI text
   const primaryExperience = (() => {
     const levels = Object.values(experienceLevels);
@@ -452,17 +459,20 @@ export function ProfileBuilderPrototype() {
     return levels[0] || "";
   })();
 
-  // Generate AI text when entering Screen 4 (index 3)
+  // Auto-advance for loading screen → generate AI text → back to work style
   useEffect(() => {
     if (currentScreen === 3) {
-      setAiText(
-        generatePrimaryAiText(selectedTrades, userText, primaryExperience)
-      );
-      setAiTextAlt(
-        generateAltAiText(selectedTrades, userText, primaryExperience)
-      );
+      const timer = setTimeout(() => {
+        const text = aiGenCount % 2 === 0
+          ? generatePrimaryAiText(selectedTrades, "", primaryExperience)
+          : generateAltAiText(selectedTrades, "", primaryExperience);
+        setUserText(text);
+        setAiGenCount((prev) => prev + 1);
+        navigateTo(2, "left");
+      }, 2200);
+      return () => clearTimeout(timer);
     }
-  }, [currentScreen, selectedTrades, userText, primaryExperience]);
+  }, [currentScreen, navigateTo, aiGenCount, selectedTrades, primaryExperience]);
 
   // Trade toggle
   const toggleTrade = (trade: Trade) => {
@@ -478,9 +488,8 @@ export function ProfileBuilderPrototype() {
     setExperienceLevels({});
     setCurrentTradeIdx(0);
     setUserText("");
-    setAiText("");
-    setAiTextAlt("");
     setAcceptedText("");
+    setAiGenCount(0);
     setPulseActive(true);
     navigateTo(0, "right");
   };
@@ -495,13 +504,7 @@ export function ProfileBuilderPrototype() {
       case 2:
         return ScreenWorkStyle();
       case 3:
-        return ScreenLoading("Crafting your description...");
-      case 4:
-        return ScreenAiResult1();
-      case 5:
-        return ScreenLoading("Trying a different approach...");
-      case 6:
-        return ScreenAiResult2();
+        return ScreenLoading(aiGenCount === 0 ? "Crafting your description..." : "Trying a different approach...");
       case 7:
         return ScreenComplete();
       default:
@@ -537,49 +540,57 @@ export function ProfileBuilderPrototype() {
               const isSelected = selectedTrades.includes(trade);
               const showPulse = pulseActive && idx === 0 && !isSelected;
               return (
-                <button
-                  key={trade}
-                  type="button"
-                  onClick={() => toggleTrade(trade)}
-                  className="cursor-pointer"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    width: "100%",
-                    border: isSelected ? "1px solid #1a3a6e" : "1px solid #949494",
-                    borderRadius: 10,
-                    padding: "12px 14px",
-                    fontSize: 17,
-                    color: isSelected ? "#222" : "#444",
-                    backgroundColor: isSelected ? "#f8faff" : "transparent",
-                    textAlign: "left",
-                    transition: "all 0.15s ease",
-                    animation: showPulse ? "pillPulse 1.8s infinite" : "none",
-                  }}
-                >
-                  <div
+                <div key={trade} style={{ position: "relative" }}>
+                  {showPulse && (
+                    <>
+                      <span style={{ position: "absolute", inset: 0, borderRadius: 10, border: "2px solid #1a3a6e", animation: "pulseRing 1.5s ease-out infinite", pointerEvents: "none" }} />
+                      <span style={{ position: "absolute", inset: 0, borderRadius: 10, border: "2px solid #1a3a6e", animation: "pulseRing 1.5s ease-out 0.5s infinite", pointerEvents: "none" }} />
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => toggleTrade(trade)}
+                    className="cursor-pointer"
                     style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 4,
-                      border: isSelected ? "2px solid #1a3a6e" : "2px solid #949494",
-                      backgroundColor: isSelected ? "#1a3a6e" : "transparent",
+                      position: "relative",
+                      zIndex: 1,
                       display: "flex",
                       alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
+                      gap: 12,
+                      width: "100%",
+                      border: isSelected ? "1px solid #1a3a6e" : "1px solid #949494",
+                      borderRadius: 10,
+                      padding: "12px 14px",
+                      fontSize: 17,
+                      color: isSelected ? "#222" : "#444",
+                      backgroundColor: isSelected ? "#f8faff" : "#fff",
+                      textAlign: "left",
                       transition: "all 0.15s ease",
                     }}
                   >
-                    {isSelected && (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </div>
-                  {trade}
-                </button>
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        border: isSelected ? "2px solid #1a3a6e" : "2px solid #949494",
+                        backgroundColor: isSelected ? "#1a3a6e" : "transparent",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {isSelected && (
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </div>
+                    {trade}
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -786,9 +797,11 @@ export function ProfileBuilderPrototype() {
     );
   }
 
-  // ── Screen 3: Work Style ───────────────────────────────────────────────────
+  // ── Screen 3: Work Style ──────��──────────────────────────���─────────────────
   function ScreenWorkStyle() {
     const hasText = userText.trim().length > 0;
+    const aiButtonLabel = aiGenCount === 0 ? "AI Assist" : "Try again";
+
     return (
       <div className="flex flex-col h-full">
         <div
@@ -798,7 +811,7 @@ export function ProfileBuilderPrototype() {
           {/* Back arrow */}
           <button
             type="button"
-            onClick={() => navigateTo(1, "right")}
+            onClick={() => { setCurrentTradeIdx(selectedTrades.length - 1); navigateTo(1, "right"); }}
             className="cursor-pointer"
             style={{
               background: "none",
@@ -821,9 +834,45 @@ export function ProfileBuilderPrototype() {
             Describe your work style
           </h2>
           <p style={{ fontSize: 15, color: "#666", marginBottom: 20 }}>
-            Write a short description of how you work, or let AI help you craft
-            one.
+            Type your own description or let AI write one for you.
           </p>
+
+          {/* AI Assist / Try again button */}
+          <div
+            key={`ai-btn-${aiGenCount}`}
+            style={{
+              marginBottom: 16,
+              animation: aiGenCount > 0 ? "buttonPop 0.4s ease" : "none",
+            }}
+          >
+            <div
+              style={{
+                background: "linear-gradient(135deg, #6366f1, #ec4899, #f59e0b)",
+                borderRadius: 9999,
+                padding: 2,
+                display: "inline-flex",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => navigateTo(3, "left")}
+                className="cursor-pointer flex items-center justify-center"
+                style={{
+                  background: "#fff",
+                  borderRadius: 9999,
+                  border: "none",
+                  padding: "10px 20px",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "#444",
+                  gap: 8,
+                }}
+              >
+                <MultiColorSparkle size={16} />
+                {aiButtonLabel}
+              </button>
+            </div>
+          </div>
 
           <textarea
             ref={textareaRef}
@@ -844,8 +893,9 @@ export function ProfileBuilderPrototype() {
               lineHeight: 1.5,
             }}
           />
+        </div>
 
-          {/* Use what I wrote */}
+        <div style={{ padding: "16px 20px" }}>
           <button
             type="button"
             onClick={() => {
@@ -863,46 +913,12 @@ export function ProfileBuilderPrototype() {
               borderRadius: 9999,
               padding: "14px 0",
               border: "none",
-              marginTop: 16,
               opacity: hasText ? 1 : 0.4,
               pointerEvents: hasText ? "auto" : "none",
               transition: "opacity 0.15s ease",
             }}
           >
-            Use what I wrote
-          </button>
-
-          {/* Divider */}
-          <div
-            className="flex items-center"
-            style={{ margin: "20px 0", gap: 12 }}
-          >
-            <div style={{ flex: 1, height: 1, backgroundColor: "#949494" }} />
-            <span style={{ fontSize: 15, color: "#767676", whiteSpace: "nowrap" }}>
-              or get AI help
-            </span>
-            <div style={{ flex: 1, height: 1, backgroundColor: "#949494" }} />
-          </div>
-
-          {/* AI Assist button */}
-          <button
-            type="button"
-            onClick={() => navigateTo(3, "left")}
-            className="cursor-pointer flex items-center justify-center"
-            style={{
-              width: "100%",
-              backgroundColor: "#222",
-              color: "#fff",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 9999,
-              padding: "14px 0",
-              border: "none",
-              gap: 8,
-            }}
-          >
-            <SparkleIcon size={16} />
-            AI Assist
+            Next
           </button>
         </div>
       </div>
@@ -928,271 +944,6 @@ export function ProfileBuilderPrototype() {
           ))}
         </div>
         <p style={{ fontSize: 17, color: "#666" }}>{text}</p>
-      </div>
-    );
-  }
-
-  // ── Screen 5: AI Result 1 ─────────────────────────────────────────────────
-  function ScreenAiResult1() {
-    return (
-      <div className="flex flex-col h-full">
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{ padding: "24px 20px" }}
-        >
-          {/* Back arrow */}
-          <button
-            type="button"
-            onClick={() => navigateTo(2, "right")}
-            className="cursor-pointer"
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginBottom: 16,
-            }}
-          >
-            <BackArrow />
-          </button>
-
-          {/* AI badge */}
-          <span
-            className="inline-flex items-center"
-            style={{
-              backgroundColor: "#f0f0ff",
-              color: "#6366f1",
-              fontSize: 14,
-              fontWeight: 500,
-              padding: "2px 8px",
-              borderRadius: 9999,
-              gap: 4,
-              marginBottom: 12,
-            }}
-          >
-            <SparkleIcon size={12} />
-            AI
-          </span>
-
-          <h2
-            style={{
-              fontSize: 21,
-              fontWeight: 700,
-              color: "#222",
-              marginBottom: 16,
-            }}
-          >
-            Here&apos;s a draft for you
-          </h2>
-
-          {/* Result card */}
-          <div
-            style={{
-              backgroundColor: "#f9f9f9",
-              border: "1px solid #949494",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 24,
-            }}
-          >
-            <p
-              style={{
-                fontSize: 17,
-                color: "#444",
-                fontStyle: "italic",
-                lineHeight: 1.6,
-              }}
-            >
-              {aiText}
-            </p>
-          </div>
-
-          {/* Try again */}
-          <button
-            type="button"
-            onClick={() => navigateTo(5, "left")}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              backgroundColor: "transparent",
-              color: "#666",
-              fontSize: 17,
-              borderRadius: 9999,
-              padding: "14px 0",
-              border: "1px solid #949494",
-              marginBottom: 8,
-            }}
-          >
-            Try again
-          </button>
-
-          {/* Accept */}
-          <button
-            type="button"
-            onClick={() => {
-              setAcceptedText(aiText);
-              navigateTo(7, "left");
-            }}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              backgroundColor: "#1a3a6e",
-              color: "#fff",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 9999,
-              padding: "14px 0",
-              border: "none",
-              marginBottom: 12,
-            }}
-          >
-            Accept
-          </button>
-
-          {/* Edit it myself */}
-          <button
-            type="button"
-            onClick={() => {
-              setUserText(aiText);
-              navigateTo(2, "right");
-            }}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              background: "none",
-              border: "none",
-              color: "#1a3a6e",
-              fontSize: 15,
-              textDecoration: "underline",
-              padding: "8px 0",
-              textAlign: "center",
-            }}
-          >
-            Edit it myself
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Screen 7: AI Result 2 ─────────────────────────────────────────────────
-  function ScreenAiResult2() {
-    return (
-      <div className="flex flex-col h-full">
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{ padding: "24px 20px" }}
-        >
-          {/* Back arrow */}
-          <button
-            type="button"
-            onClick={() => navigateTo(2, "right")}
-            className="cursor-pointer"
-            style={{
-              background: "none",
-              border: "none",
-              padding: 0,
-              marginBottom: 16,
-            }}
-          >
-            <BackArrow />
-          </button>
-
-          {/* AI badge */}
-          <span
-            className="inline-flex items-center"
-            style={{
-              backgroundColor: "#f0f0ff",
-              color: "#6366f1",
-              fontSize: 14,
-              fontWeight: 500,
-              padding: "2px 8px",
-              borderRadius: 9999,
-              gap: 4,
-              marginBottom: 12,
-            }}
-          >
-            <SparkleIcon size={12} />
-            AI
-          </span>
-
-          <h2
-            style={{
-              fontSize: 21,
-              fontWeight: 700,
-              color: "#222",
-              marginBottom: 16,
-            }}
-          >
-            Here&apos;s a draft for you
-          </h2>
-
-          {/* Result card */}
-          <div
-            style={{
-              backgroundColor: "#f9f9f9",
-              border: "1px solid #949494",
-              borderRadius: 12,
-              padding: 16,
-              marginBottom: 24,
-            }}
-          >
-            <p
-              style={{
-                fontSize: 17,
-                color: "#444",
-                fontStyle: "italic",
-                lineHeight: 1.6,
-              }}
-            >
-              {aiTextAlt}
-            </p>
-          </div>
-
-          {/* Accept */}
-          <button
-            type="button"
-            onClick={() => {
-              setAcceptedText(aiTextAlt);
-              navigateTo(7, "left");
-            }}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              backgroundColor: "#1a3a6e",
-              color: "#fff",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 9999,
-              padding: "14px 0",
-              border: "none",
-              marginBottom: 12,
-            }}
-          >
-            Accept
-          </button>
-
-          {/* Edit it myself */}
-          <button
-            type="button"
-            onClick={() => {
-              setUserText(aiTextAlt);
-              navigateTo(2, "right");
-            }}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              background: "none",
-              border: "none",
-              color: "#1a3a6e",
-              fontSize: 15,
-              textDecoration: "underline",
-              padding: "8px 0",
-              textAlign: "center",
-            }}
-          >
-            Edit it myself
-          </button>
-        </div>
       </div>
     );
   }
