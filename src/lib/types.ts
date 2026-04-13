@@ -54,6 +54,7 @@ export interface CaseStudy {
   title: string;
   subtitle: string;
   meta: CaseStudyMeta;
+  eyebrow?: string;
   brief?: string;
   problem: string;
   outcome: string;
@@ -69,6 +70,9 @@ export interface CaseStudy {
   bentoMedia?: BentoMediaItem[];
   nextSlug?: string;
   nextTitle?: string;
+  ctaText?: string;
+  ctaButtonLabel?: string;
+  ctaButtonHref?: string;
 }
 
 export interface ExperienceEntry {

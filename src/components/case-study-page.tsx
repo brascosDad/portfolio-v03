@@ -91,7 +91,7 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
       {/* Header */}
       <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[40px]">
         <p className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
-          Case Study
+          {study.eyebrow || "Case Study"}
         </p>
         <h1 className="mt-[10px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold tracking-tight text-text-primary">
           {displayTitle}
@@ -212,7 +212,13 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
         </div>
 
         {/* CTA */}
-        <CaseStudyCta nextSlug={study.nextSlug} nextTitle={study.nextTitle} />
+        <CaseStudyCta
+          nextSlug={study.nextSlug}
+          nextTitle={study.nextTitle}
+          ctaText={study.ctaText}
+          ctaButtonLabel={study.ctaButtonLabel}
+          ctaButtonHref={study.ctaButtonHref}
+        />
       </section>
 
       {lightboxSrc && (
