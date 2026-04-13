@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
-type ScreenIndex = 0 | 1 | 2 | 3 | 7;
+type ScreenIndex = 0 | 1 | 2 | 7;
 
 const TRADES = [
   "Electrical",
@@ -413,6 +413,11 @@ const PULSE_KEYFRAMES = `
   40% { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+@keyframes scrimShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 `;
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -430,6 +435,7 @@ export function ProfileBuilderPrototype() {
   const [userText, setUserText] = useState("");
   const [acceptedText, setAcceptedText] = useState("");
   const [aiGenCount, setAiGenCount] = useState(0);
+  const [aiLoading, setAiLoading] = useState(false);
   const [pulseActive, setPulseActive] = useState(true);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -459,20 +465,19 @@ export function ProfileBuilderPrototype() {
     return levels[0] || "";
   })();
 
-  // Auto-advance for loading screen → generate AI text → back to work style
+  // AI generation: overlay scrim on textarea, then populate
   useEffect(() => {
-    if (currentScreen === 3) {
-      const timer = setTimeout(() => {
-        const text = aiGenCount % 2 === 0
-          ? generatePrimaryAiText(selectedTrades, "", primaryExperience)
-          : generateAltAiText(selectedTrades, "", primaryExperience);
-        setUserText(text);
-        setAiGenCount((prev) => prev + 1);
-        navigateTo(2, "left");
-      }, 2200);
-      return () => clearTimeout(timer);
-    }
-  }, [currentScreen, navigateTo, aiGenCount, selectedTrades, primaryExperience]);
+    if (!aiLoading) return;
+    const timer = setTimeout(() => {
+      const text = aiGenCount % 2 === 0
+        ? generatePrimaryAiText(selectedTrades, "", primaryExperience)
+        : generateAltAiText(selectedTrades, "", primaryExperience);
+      setUserText(text);
+      setAiGenCount((prev) => prev + 1);
+      setAiLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [aiLoading, aiGenCount, selectedTrades, primaryExperience]);
 
   // Trade toggle
   const toggleTrade = (trade: Trade) => {
@@ -490,6 +495,7 @@ export function ProfileBuilderPrototype() {
     setUserText("");
     setAcceptedText("");
     setAiGenCount(0);
+    setAiLoading(false);
     setPulseActive(true);
     navigateTo(0, "right");
   };
@@ -503,8 +509,6 @@ export function ProfileBuilderPrototype() {
         return ScreenExperience();
       case 2:
         return ScreenWorkStyle();
-      case 3:
-        return ScreenLoading(aiGenCount === 0 ? "Crafting your description..." : "Trying a different approach...");
       case 7:
         return ScreenComplete();
       default:
@@ -652,11 +656,8 @@ export function ProfileBuilderPrototype() {
 
     return (
       <div className="flex flex-col h-full">
-        <div
-          className="flex-1 overflow-y-auto"
-          style={{ padding: "24px 20px" }}
-        >
-          {/* Back arrow */}
+        {/* Back arrow pinned to top */}
+        <div style={{ padding: "24px 20px 0" }}>
           <button
             type="button"
             onClick={handleBack}
@@ -665,133 +666,112 @@ export function ProfileBuilderPrototype() {
               background: "none",
               border: "none",
               padding: 0,
-              marginBottom: 16,
             }}
           >
             <BackArrow />
           </button>
+        </div>
 
-          {/* Progress: trade tags */}
-          <div className="flex flex-wrap" style={{ gap: 6, marginBottom: 16 }}>
-            {selectedTrades.map((trade, idx) => {
-              const isDone = idx < currentTradeIdx;
-              const isCurrent = idx === currentTradeIdx;
+        {/* Centered question + options + next button */}
+        <div
+          className="flex-1 flex flex-col items-center justify-center"
+          style={{ padding: "0 20px" }}
+        >
+          <div style={{ width: "100%" }}>
+            <h2
+              style={{
+                fontSize: 21,
+                fontWeight: 700,
+                color: "#222",
+                marginBottom: 16,
+              }}
+            >
+              How much {currentTrade} experience do you have?
+            </h2>
+
+            {EXPERIENCE_OPTIONS.map((opt) => {
+              const isSelected = currentLevel === opt.label;
               return (
-                <span
-                  key={trade}
+                <button
+                  key={opt.label}
+                  type="button"
+                  onClick={() => selectLevel(opt.label)}
+                  className="cursor-pointer"
                   style={{
-                    backgroundColor: isCurrent ? "#1a3a6e" : isDone ? "#dbeafe" : "#f0f0f0",
-                    color: isCurrent ? "#fff" : isDone ? "#1a3a6e" : "#999",
-                    fontSize: 14,
-                    padding: "4px 10px",
-                    borderRadius: 9999,
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    border: isSelected
+                      ? "1px solid #1a3a6e"
+                      : "1px solid #949494",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    marginBottom: 8,
+                    backgroundColor: isSelected ? "#f8faff" : "transparent",
+                    textAlign: "left",
+                    gap: 14,
                     transition: "all 0.15s ease",
                   }}
                 >
-                  {isDone ? `✓ ${trade}` : trade}
-                </span>
-              );
-            })}
-          </div>
-
-          <h2
-            style={{
-              fontSize: 21,
-              fontWeight: 700,
-              color: "#222",
-              marginBottom: 20,
-            }}
-          >
-            How much {currentTrade} experience do you have?
-          </h2>
-
-          {EXPERIENCE_OPTIONS.map((opt) => {
-            const isSelected = currentLevel === opt.label;
-            return (
-              <button
-                key={opt.label}
-                type="button"
-                onClick={() => selectLevel(opt.label)}
-                className="cursor-pointer"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  border: isSelected
-                    ? "1px solid #1a3a6e"
-                    : "1px solid #949494",
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 8,
-                  backgroundColor: isSelected ? "#f8faff" : "transparent",
-                  textAlign: "left",
-                  gap: 14,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {/* Radio dot */}
-                <div
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: "50%",
-                    border: isSelected
-                      ? "2px solid #1a3a6e"
-                      : "2px solid #949494",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  {isSelected && (
-                    <div
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        backgroundColor: "#1a3a6e",
-                      }}
-                    />
-                  )}
-                </div>
-                <div>
+                  {/* Radio dot */}
                   <div
-                    style={{ fontSize: 17, fontWeight: 700, color: "#222" }}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: isSelected
+                        ? "2px solid #1a3a6e"
+                        : "2px solid #949494",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
                   >
+                    {isSelected && (
+                      <div
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: "50%",
+                          backgroundColor: "#1a3a6e",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: "#222" }}>
                     {opt.label}
                   </div>
-                  <div style={{ fontSize: 15, color: "#666", marginTop: 2 }}>
+                  <div style={{ fontSize: 15, color: "#767676" }}>
                     {opt.range}
                   </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                </button>
+              );
+            })}
 
-        <div style={{ padding: "16px 20px" }}>
-          <button
-            type="button"
-            onClick={handleNext}
-            disabled={!hasSelection}
-            className="cursor-pointer"
-            style={{
-              width: "100%",
-              backgroundColor: "#1a3a6e",
-              color: "#fff",
-              fontSize: 17,
-              fontWeight: 700,
-              borderRadius: 9999,
-              padding: "14px 0",
-              border: "none",
-              opacity: hasSelection ? 1 : 0.4,
-              pointerEvents: hasSelection ? "auto" : "none",
-              transition: "opacity 0.15s ease",
-            }}
-          >
-            Next
-          </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!hasSelection}
+              className="cursor-pointer"
+              style={{
+                width: "100%",
+                marginTop: 8,
+                backgroundColor: "#1a3a6e",
+                color: "#fff",
+                fontSize: 17,
+                fontWeight: 700,
+                borderRadius: 9999,
+                padding: "14px 0",
+                border: "none",
+                opacity: hasSelection ? 1 : 0.4,
+                pointerEvents: hasSelection ? "auto" : "none",
+                transition: "opacity 0.15s ease",
+              }}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -855,7 +835,7 @@ export function ProfileBuilderPrototype() {
             >
               <button
                 type="button"
-                onClick={() => navigateTo(3, "left")}
+                onClick={() => { if (!aiLoading) setAiLoading(true); }}
                 className="cursor-pointer flex items-center justify-center"
                 style={{
                   background: "#fff",
@@ -864,8 +844,11 @@ export function ProfileBuilderPrototype() {
                   padding: "10px 20px",
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "#444",
+                  color: aiLoading ? "#999" : "#444",
                   gap: 8,
+                  opacity: aiLoading ? 0.6 : 1,
+                  pointerEvents: aiLoading ? "none" : "auto",
+                  transition: "opacity 0.15s ease",
                 }}
               >
                 <MultiColorSparkle size={16} />
@@ -874,25 +857,80 @@ export function ProfileBuilderPrototype() {
             </div>
           </div>
 
-          <textarea
-            ref={textareaRef}
-            value={userText}
-            onChange={(e) => setUserText(e.target.value)}
-            placeholder="I'm a detail-oriented electrician who takes pride in clean, code-compliant work..."
-            style={{
-              width: "100%",
-              minHeight: 160,
-              border: "1px solid #949494",
-              borderRadius: 12,
-              padding: 16,
-              fontSize: 17,
-              color: "#222",
-              resize: "vertical",
-              outline: "none",
-              fontFamily: "inherit",
-              lineHeight: 1.5,
-            }}
-          />
+          {/* Textarea with gradient scrim overlay during AI generation */}
+          <div style={{ position: "relative" }}>
+            <textarea
+              ref={textareaRef}
+              value={userText}
+              onChange={(e) => setUserText(e.target.value)}
+              placeholder="I'm a detail-oriented electrician who takes pride in clean, code-compliant work..."
+              disabled={aiLoading}
+              style={{
+                width: "100%",
+                minHeight: 160,
+                border: "1px solid #949494",
+                borderRadius: 12,
+                padding: 16,
+                fontSize: 17,
+                color: "#222",
+                resize: "vertical",
+                outline: "none",
+                fontFamily: "inherit",
+                lineHeight: 1.5,
+              }}
+            />
+            {/* Gradient scrim overlay */}
+            {aiLoading && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  pointerEvents: "none",
+                }}
+              >
+                {/* Animated gradient border */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 12,
+                    background: "linear-gradient(135deg, #6366f1, #ec4899, #f59e0b, #6366f1, #ec4899)",
+                    backgroundSize: "300% 300%",
+                    animation: "scrimShimmer 2s ease infinite",
+                  }}
+                />
+                {/* Inner gray fill */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 3,
+                    borderRadius: 10,
+                    background: "linear-gradient(135deg, rgba(245,245,245,0.92), rgba(235,235,240,0.95), rgba(245,245,245,0.92))",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        backgroundColor: "#6366f1",
+                        opacity: 0.6,
+                        animation: `dotBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div style={{ padding: "16px 20px" }}>
@@ -921,29 +959,6 @@ export function ProfileBuilderPrototype() {
             Next
           </button>
         </div>
-      </div>
-    );
-  }
-
-  // ── Screen 4 & 6: Loading ─────────────────────────────────────────────────
-  function ScreenLoading(text: string) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="flex" style={{ gap: 8, marginBottom: 20 }}>
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: "50%",
-                backgroundColor: "#1a3a6e",
-                animation: `dotBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-              }}
-            />
-          ))}
-        </div>
-        <p style={{ fontSize: 17, color: "#666" }}>{text}</p>
       </div>
     );
   }

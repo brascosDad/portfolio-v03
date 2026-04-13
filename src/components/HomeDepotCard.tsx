@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { CaseStudy } from "@/lib/types";
@@ -16,6 +16,9 @@ interface HomeDepotCardProps {
   study: CaseStudy;
 }
 
+const PHONE_W = 390 + 16; // screen + bezel
+const PHONE_H = 780 + 16;
+
 function PhoneFrame({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative rounded-[44px] bg-[#1a1a1a] p-[8px] shadow-xl">
@@ -26,6 +29,46 @@ function PhoneFrame({ children }: { children: React.ReactNode }) {
         {/* Dynamic island */}
         <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-10" />
         {children}
+      </div>
+    </div>
+  );
+}
+
+function ResponsivePhone({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const available = el.clientWidth;
+      setScale(Math.min(1, available / PHONE_W));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center">
+      <div
+        style={{
+          width: Math.round(PHONE_W * scale),
+          height: Math.round(PHONE_H * scale),
+        }}
+      >
+        <div
+          className="origin-top-left"
+          style={{
+            width: PHONE_W,
+            height: PHONE_H,
+            transform: scale < 1 ? `scale(${scale})` : undefined,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -122,7 +165,6 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
   const closeModal = useCallback(() => setModalOpen(false), []);
 
   const outcomePoints = [
-    "3 opportunity areas identified and validated",
     "6 competing prototypes built and tested with real tradespeople",
     "All 3 directions moved to the product roadmap",
   ];
@@ -155,28 +197,15 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
 
       {/* Interactive prototypes in phone frames */}
       <div className="mt-[20px] grid grid-cols-1 md:grid-cols-2 gap-[30px]">
-        {([ApplyFlowPrototype, ProfileBuilderPrototype] as const).map((Component, i) => {
-          const s = 0.8;
-          const phoneW = 390 + 16;
-          const phoneH = 780 + 16;
-          return (
-            <div key={i} className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[350px] md:h-[700px] overflow-hidden flex items-center justify-center">
-              <div
-                className="relative mx-auto"
-                style={{ width: Math.round(phoneW * s), height: Math.round(phoneH * s) }}
-              >
-                <div
-                  className="absolute top-0 left-0 origin-top-left"
-                  style={{ transform: `scale(${s})`, width: phoneW, height: phoneH }}
-                >
-                  <PhoneFrame>
-                    <Component />
-                  </PhoneFrame>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {([ApplyFlowPrototype, ProfileBuilderPrototype] as const).map((Component, i) => (
+          <div key={i} className="bg-bg-secondary rounded-md py-[40px] px-[20px]">
+            <ResponsivePhone>
+              <PhoneFrame>
+                <Component />
+              </PhoneFrame>
+            </ResponsivePhone>
+          </div>
+        ))}
       </div>
 
       {/* Meta row: Company, Role, Problem, Outcome */}
@@ -220,7 +249,7 @@ export function HomeDepotCard({ study }: HomeDepotCardProps) {
                 <span className="absolute -left-[30px] top-[2px]">
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
-                    <path d="M10 14.5V5.5M10 5.5L6.5 9M10 5.5L13.5 9" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M6.5 10L9 12.5L13.5 7.5" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </span>
                 <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug">

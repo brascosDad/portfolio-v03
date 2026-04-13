@@ -392,7 +392,6 @@ function Screen3({ onBack, onSubmit }: { onBack: () => void; onSubmit: () => voi
 }
 
 function Screen4({ onReset }: { onReset: () => void }) {
-  const [notifOn, setNotifOn] = useState(false);
 
   return (
     <div className="flex flex-col h-full">
@@ -410,31 +409,17 @@ function Screen4({ onReset }: { onReset: () => void }) {
 
         {/* action rows */}
         <div className="w-full mt-[32px] flex flex-col gap-[4px]">
-          {/* notifications toggle */}
-          <button
-            onClick={() => setNotifOn(!notifOn)}
-            className="flex items-center justify-between w-full px-[16px] py-[14px] bg-white border border-[#949494] rounded-[12px] cursor-pointer"
+          {/* notifications row (static — prompts native OS permission) */}
+          <div
+            className="flex items-center w-full px-[16px] py-[14px] bg-white border border-[#949494] rounded-[12px]"
           >
             <div className="flex items-center gap-[10px]">
               <BellIcon />
               <span className="text-[17px] text-[#222]">
-                {notifOn ? "Notifications on" : "Get notified on updates"}
+                Get notified on updates
               </span>
-              {notifOn && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12l5 5L20 7" />
-                </svg>
-              )}
             </div>
-            {/* toggle */}
-            <div
-              className={`w-[40px] h-[24px] rounded-full relative transition-colors duration-200 ${notifOn ? "bg-[#1a3a6e]" : "bg-[#949494]"}`}
-            >
-              <div
-                className={`absolute top-[2px] w-[20px] h-[20px] rounded-full bg-white shadow transition-transform duration-200 ${notifOn ? "translate-x-[18px]" : "translate-x-[2px]"}`}
-              />
-            </div>
-          </button>
+          </div>
 
           {/* explore similar */}
           <button
