@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useCallback, useState } from "react";
-import Link from "next/link";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { CaseStudyMeta } from "./case-study-meta";
 import { CaseStudyBlock } from "./case-study-block";
@@ -75,21 +74,8 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
 
   return (
     <>
-      {/* Back link */}
-      <div className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[40px]">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted hover:text-text-primary transition-colors"
-        >
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 10H4M4 10L9 5M4 10L9 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Back
-        </Link>
-      </div>
-
       {/* Header */}
-      <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[40px]">
+      <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[60px] md:pt-[90px] lg:pt-[100px]">
         <p className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
           {study.eyebrow || "Case Study"}
         </p>
