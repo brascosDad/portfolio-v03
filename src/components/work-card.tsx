@@ -238,6 +238,11 @@ export function WorkCard({ study }: WorkCardProps) {
                       <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
                       <path d="M10 5.5V14.5M10 14.5L6.5 11M10 14.5L13.5 11" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
+                  ) : /adopt|daily active/i.test(point) ? (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
+                      <path d="M6.5 10.5L9 13L13.5 7.5" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   ) : (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />

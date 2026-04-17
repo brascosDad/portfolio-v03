@@ -507,7 +507,7 @@ export function ApplyFlowPrototype() {
     // Screen2 content — title in top bar, company info below description
     <div key="s2" className="flex flex-col h-full">
       {/* top bar: back / title / heart */}
-      <div className="flex items-start gap-[10px] px-[16px] py-[10px] bg-white border-b border-[#f0f0f0] shrink-0">
+      <div className="flex items-center gap-[10px] px-[16px] py-[10px] bg-white border-b border-[#f0f0f0] shrink-0">
         <button onClick={handleCloseDetail} className="cursor-pointer p-[4px] shrink-0" aria-label="Back">
           <BackArrow />
         </button>

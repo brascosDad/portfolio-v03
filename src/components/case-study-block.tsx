@@ -15,11 +15,15 @@ const SprintStructure = dynamic(
 const PrototypesShowcase = dynamic(
   () => import("./homedepot/PrototypesShowcase").then((m) => m.PrototypesShowcase),
 );
+const JourneyMaps = dynamic(
+  () => import("./yonas-media/JourneyMaps").then((m) => m.JourneyMaps),
+);
 
 const customComponentMap: Record<string, React.ComponentType> = {
   "competitive-grid": CompetitiveGrid,
   "sprint-structure": SprintStructure,
   "prototypes": PrototypesShowcase,
+  "journey-maps": JourneyMaps,
 };
 
 interface CaseStudyBlockProps {
