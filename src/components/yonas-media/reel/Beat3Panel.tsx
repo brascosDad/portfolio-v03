@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Beat3Tool, BuildPiece } from "./Beat3Tool";
 import { Beat3Demo, DemoTarget } from "./Beat3Demo";
+import { ReelCaption } from "./ReelCaption";
 import { ArtistId } from "./data";
 import { TIMING } from "./tokens";
 
@@ -24,14 +25,15 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [selectedArtists, setSelectedArtists] = useState<Set<ArtistId>>(new Set());
   const [showReplay, setShowReplay] = useState(false);
+  const [captionFading, setCaptionFading] = useState(false);
 
-  // Refs to DOM targets that the demo cursor moves between. Populated via callbacks
-  // that Beat3Tool invokes when it renders each element.
   const rootRef = useRef<HTMLDivElement | null>(null);
   const prevArrowRef = useRef<HTMLElement | null>(null);
   const nextArrowRef = useRef<HTMLElement | null>(null);
   const dayCellsRef = useRef<Map<number, HTMLElement>>(new Map());
   const artistRowsRef = useRef<Map<ArtistId, HTMLElement>>(new Map());
+  const subphaseRef = useRef<Subphase>("construction");
+  subphaseRef.current = subphase;
 
   const handleMonthChange = useCallback((delta: -1 | 1) => {
     setSelectedMonthIdx((prev) => {
@@ -57,11 +59,21 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
 
   const interactiveMode = subphase === "interactive";
 
+  // Clicks anywhere on the tool while the caption is visible dismiss it. We don't
+  // use pointer-events: none to gate the tool during caption — hover states stay
+  // alive; click handlers inside Beat3Tool call this even when interactiveMode is
+  // false (they just short-circuit the actual state change).
   const handleAnyInteraction = useCallback(() => {
-    // Wired to caption dismissal in a later commit.
-  }, []);
+    if (subphaseRef.current === "caption" && !captionFading) {
+      setCaptionFading(true);
+      setTimeout(() => {
+        setSubphase("interactive");
+        setShowReplay(true);
+      }, TIMING.caption.fadeOutMs);
+    }
+  }, [captionFading]);
 
-  // Construction → demo → interactive sequence.
+  // Construction sequence.
   useEffect(() => {
     if (subphase !== "construction") return;
     let cancelled = false;
@@ -94,12 +106,8 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
     };
   }, [subphase, reducedMotion]);
 
-  // DECISION: caption subphase lands in a subsequent commit. For now, when demo
-  // completes we jump directly to interactive mode (which is the post-caption
-  // state) and reveal the Replay button.
   const handleDemoComplete = useCallback(() => {
-    setSubphase("interactive");
-    setShowReplay(true);
+    setSubphase("caption");
   }, []);
 
   const getTargetRect = useCallback((target: DemoTarget): DOMRect | null => {
@@ -154,6 +162,14 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
           onSelectDay={handleDayClick}
           onToggleArtist={handleArtistToggle}
           onComplete={handleDemoComplete}
+        />
+      )}
+
+      {subphase === "caption" && (
+        <ReelCaption
+          reducedMotion={reducedMotion}
+          fading={captionFading}
+          onDismiss={handleAnyInteraction}
         />
       )}
     </div>
