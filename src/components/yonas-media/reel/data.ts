@@ -65,33 +65,71 @@ export const BOOKINGS: Record<ArtistId, Booking[]> = {
 };
 
 // Beat 2 sheet rows — procedural filler per artist seed.
+// Generates rows spanning January, February, and March 2026 so the fast-scroll
+// reads as sweeping across months to land on March 1.
 export interface SheetRow {
+  monthIdx: number;
   day: number;
+  dateLabel: string;
   status: string;
   venue: string;
+  isFocal?: boolean;
 }
 
-export function buildOldWaySheetData(artistSeed: number): SheetRow[] {
+const SHEET_MONTHS = [
+  { idx: 0, name: "Jan", days: 31 },
+  { idx: 1, name: "Feb", days: 28 },
+  { idx: 2, name: "Mar", days: 31 },
+];
+
+export function buildOldWaySheetData(
+  artistSeed: number,
+  focal?: { venue: string; verdict: "confirmed" | "hold" },
+): SheetRow[] {
   const filler = ["Town Hall", "Orpheum", "Fox Theatre", "The Blue Note", "Warehouse 7"];
   const offerFiller = ["Mercury Lounge", "Neumos", "Silverline", "Paramount"];
   const rows: SheetRow[] = [];
-  for (let i = 1; i <= 30; i++) {
-    const seedVal = (i + artistSeed) % 4;
-    let status = "";
-    let venue = "";
-    if (seedVal === 0) {
-      status = "CONFIRMED";
-      venue = filler[(seedVal + i) % filler.length];
-    } else if (seedVal === 1) {
-      status = "HOLD";
-    } else if (seedVal === 3) {
-      status = "OFFER";
-      venue = offerFiller[i % offerFiller.length];
+
+  for (const m of SHEET_MONTHS) {
+    for (let d = 1; d <= m.days; d++) {
+      const isFocal = m.idx === 2 && d === 1;
+      if (isFocal && focal) {
+        rows.push({
+          monthIdx: m.idx,
+          day: d,
+          dateLabel: `${m.idx + 1}/${d}/26`,
+          status: focal.verdict === "confirmed" ? "CONFIRMED" : "HOLD",
+          venue: focal.venue,
+          isFocal: true,
+        });
+        continue;
+      }
+      const seedVal = (d + m.idx * 7 + artistSeed) % 5;
+      let status = "";
+      let venue = "";
+      if (seedVal === 0) {
+        status = "CONFIRMED";
+        venue = filler[(d + m.idx) % filler.length];
+      } else if (seedVal === 1) {
+        status = "HOLD";
+      } else if (seedVal === 2) {
+        status = "OFFER";
+        venue = offerFiller[d % offerFiller.length];
+      }
+      rows.push({
+        monthIdx: m.idx,
+        day: d,
+        dateLabel: `${m.idx + 1}/${d}/26`,
+        status,
+        venue,
+      });
     }
-    rows.push({ day: i, status, venue });
   }
   return rows;
 }
+
+// Index of the focal (March 1) row within the 90-row dataset.
+export const SHEET_FOCAL_ROW_INDEX = 31 + 28; // Jan 31 rows + Feb 28 rows
 
 // Beat 2 focal row: the March 1 entry for each artist, hand-authored to match the verdict.
 export const BEAT2_FOCAL: Record<"cora" | "jonah" | "marcel", { venue: string; verdict: "confirmed" | "hold" }> = {

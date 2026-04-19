@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { ReelPoster } from "./ReelPoster";
 import { Beat1Email } from "./Beat1Email";
+import { Beat2OldWay } from "./Beat2OldWay";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
 type Phase =
@@ -114,12 +115,12 @@ export function YonasReel() {
       await awaitBeat();
       if (token.cancelled) return;
 
-      // DECISION: Beat 2 onward are still stub timers in this commit; they become
-      // promise-awaited as each beat component lands.
-      const r = reducedMotion;
       setPhase("beat2");
-      await wait(r ? 300 : 16000);
+      await awaitBeat();
       if (token.cancelled) return;
+
+      // DECISION: transition onward are still stub timers until each beat lands.
+      const r = reducedMotion;
       setPhase("transition");
       await wait(r ? 500 : 3500);
       if (token.cancelled) return;
@@ -171,7 +172,10 @@ export function YonasReel() {
           {phase === "beat1" && (
             <Beat1Email reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
           )}
-          {phase !== "beat1" && (
+          {phase === "beat2" && (
+            <Beat2OldWay reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
+          )}
+          {phase !== "beat1" && phase !== "beat2" && (
             <div
               className="absolute inset-0 flex items-center justify-center"
               style={{ background: COLORS.bg, color: COLORS.onSurface }}
