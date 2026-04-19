@@ -6,23 +6,12 @@ import { ReelPoster } from "./ReelPoster";
 import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
 import { TransitionCollapse } from "./TransitionCollapse";
+import { Beat3Panel } from "./Beat3Panel";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
-type Phase =
-  | "idle"
-  | "beat1"
-  | "beat2"
-  | "transition"
-  | "construction"
-  | "demo"
-  | "caption"
-  | "interactive";
+type Phase = "idle" | "beat1" | "beat2" | "transition" | "beat3";
 
 type Token = { cancelled: boolean };
-
-function wait(ms: number) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
 
 export function YonasReel() {
   const reducedMotion = useReducedMotion();
@@ -31,11 +20,10 @@ export function YonasReel() {
 
   const [mountInterior, setMountInterior] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
+  const [replayCount, setReplayCount] = useState(0);
 
   const currentTokenRef = useRef<Token | null>(null);
 
-  // Beat-completion signal: each beat component calls onComplete → resolves the promise
-  // the orchestrator is awaiting. Orchestrator then advances phase.
   const beatDoneRef = useRef<(() => void) | null>(null);
   const awaitBeat = useCallback(
     () =>
@@ -50,7 +38,11 @@ export function YonasReel() {
     resolver?.();
   }, []);
 
-  // Viewport gating — mount interior when ~1.5× viewport near, unmount when ~2× far.
+  const handleReplay = useCallback(() => {
+    setReplayCount((n) => n + 1);
+  }, []);
+
+  // Viewport gating.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -81,7 +73,7 @@ export function YonasReel() {
     };
   }, []);
 
-  // Scale-to-fit: 1440px native → container width.
+  // Scale-to-fit.
   useEffect(() => {
     if (!mountInterior) return;
     const frame = containerRef.current;
@@ -98,7 +90,7 @@ export function YonasReel() {
     return () => ro.disconnect();
   }, [mountInterior]);
 
-  // Master orchestrator.
+  // Orchestrator. Replay bumps replayCount which re-fires this effect from the top.
   useEffect(() => {
     if (!mountInterior) {
       if (currentTokenRef.current) currentTokenRef.current.cancelled = true;
@@ -124,25 +116,15 @@ export function YonasReel() {
       await awaitBeat();
       if (token.cancelled) return;
 
-      // DECISION: construction onward are still stub timers until each beat lands.
-      const r = reducedMotion;
-      setPhase("construction");
-      await wait(r ? 300 : 2200);
-      if (token.cancelled) return;
-      setPhase("demo");
-      await wait(r ? 300 : 6000);
-      if (token.cancelled) return;
-      setPhase("caption");
-      await wait(400);
-      if (token.cancelled) return;
-      setPhase("interactive");
+      setPhase("beat3");
+      // Beat 3 runs autonomously; orchestrator ends here.
     })();
 
     return () => {
       token.cancelled = true;
       beatDoneRef.current = null;
     };
-  }, [mountInterior, reducedMotion, awaitBeat]);
+  }, [mountInterior, reducedMotion, replayCount, awaitBeat]);
 
   if (!mountInterior) {
     return (
@@ -180,61 +162,11 @@ export function YonasReel() {
           {phase === "transition" && (
             <TransitionCollapse reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
           )}
-          {phase !== "beat1" && phase !== "beat2" && phase !== "transition" && (
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-              style={{ background: COLORS.bg, color: COLORS.onSurface }}
-            >
-              <div className="text-center">
-                <p
-                  style={{
-                    fontFamily: "var(--font-space-grotesk)",
-                    fontSize: 11,
-                    fontWeight: 600,
-                    letterSpacing: "0.12em",
-                    textTransform: "uppercase",
-                    color: "rgba(26, 28, 28, 0.5)",
-                  }}
-                >
-                  Yonas Media · Hero Reel
-                </p>
-                <p
-                  style={{
-                    marginTop: 8,
-                    fontFamily: "var(--font-space-grotesk)",
-                    fontSize: 40,
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {phaseLabel(phase)}
-                </p>
-              </div>
-            </div>
+          {phase === "beat3" && (
+            <Beat3Panel reducedMotion={!!reducedMotion} onReplay={handleReplay} />
           )}
         </div>
       </div>
     </>
   );
-}
-
-function phaseLabel(phase: Phase) {
-  switch (phase) {
-    case "beat1":
-      return "Beat 1 · Email";
-    case "beat2":
-      return "Beat 2 · Sheets";
-    case "transition":
-      return "Transition · Collapse";
-    case "construction":
-      return "Beat 3a · Construction";
-    case "demo":
-      return "Beat 3b · Demo";
-    case "caption":
-      return "Caption";
-    case "interactive":
-      return "Beat 3c · Interactive";
-    default:
-      return "Loading…";
-  }
 }
