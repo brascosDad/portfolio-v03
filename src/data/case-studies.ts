@@ -68,8 +68,9 @@ export const caseStudies: CaseStudy[] = [
       "Reduced contract entry time from 1 min 15 sec to ~5 sec",
       "90% daily active usage across a 15-person team",
     ],
+    bentoLayout: "hero-hero" as const,
     bentoMedia: [
-      { type: "placeholder" as const, alt: "TODO: Replace with final cover image \u2014 booking calendar view with real data" },
+      { type: "component" as const, componentId: "yonas-reel", alt: "Yonas Media — animated booking story" },
     ],
     sections: [
       {

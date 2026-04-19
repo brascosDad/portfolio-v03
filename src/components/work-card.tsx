@@ -13,6 +13,10 @@ const ApplyFlowPrototype = dynamic(
 const ProfileBuilderPrototype = dynamic(
   () => import("./homedepot/ProfileBuilderPrototype").then((m) => m.ProfileBuilderPrototype),
 );
+const YonasReel = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasReel),
+  { ssr: false },
+);
 
 const componentMap: Record<string, React.ComponentType> = {
   "apply-flow": ApplyFlowPrototype,
@@ -77,6 +81,16 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
   }
 
   if (media.type === "component" && media.componentId) {
+    // Yonas hero reel self-scales from its native 1440×900 via an internal ResizeObserver,
+    // so it gets a plain full-width wrapper instead of the phone-frame scaler used for the
+    // Home Depot prototypes.
+    if (media.componentId === "yonas-reel") {
+      return (
+        <div className="w-full rounded-lg overflow-hidden">
+          <YonasReel />
+        </div>
+      );
+    }
     const Component = componentMap[media.componentId];
     if (!Component) return <PlaceholderImage label={media.alt || "Component"} aspect="video" />;
     const s = media.scale ?? 0.8;

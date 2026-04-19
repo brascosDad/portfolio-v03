@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Roboto, Alfa_Slab_One } from "next/font/google";
+import { Hanken_Grotesk, Roboto, Alfa_Slab_One, Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
 
@@ -20,6 +20,18 @@ const alfaSlabOne = Alfa_Slab_One({
   variable: "--font-alpha-slab",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
   title: "Ernest Son — UX/Product Designer",
   description:
@@ -35,7 +47,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable} ${alfaSlabOne.variable}`}>
+    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable} ${alfaSlabOne.variable} ${spaceGrotesk.variable} ${inter.variable}`}>
       <body>
         <Nav />
         <main>{children}</main>
