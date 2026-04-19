@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Beat3Tool, BuildPiece } from "./Beat3Tool";
+import { Beat3Demo, DemoTarget } from "./Beat3Demo";
 import { ArtistId } from "./data";
 import { TIMING } from "./tokens";
 
@@ -24,12 +25,22 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
   const [selectedArtists, setSelectedArtists] = useState<Set<ArtistId>>(new Set());
   const [showReplay, setShowReplay] = useState(false);
 
+  // Refs to DOM targets that the demo cursor moves between. Populated via callbacks
+  // that Beat3Tool invokes when it renders each element.
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const prevArrowRef = useRef<HTMLElement | null>(null);
+  const nextArrowRef = useRef<HTMLElement | null>(null);
+  const dayCellsRef = useRef<Map<number, HTMLElement>>(new Map());
+  const artistRowsRef = useRef<Map<ArtistId, HTMLElement>>(new Map());
+
   const handleMonthChange = useCallback((delta: -1 | 1) => {
     setSelectedMonthIdx((prev) => {
       const next = Math.max(0, Math.min(2, prev + delta));
       return next as 0 | 1 | 2;
     });
   }, []);
+
+  const handleAdvanceMonth = useCallback(() => handleMonthChange(1), [handleMonthChange]);
 
   const handleDayClick = useCallback((day: number) => {
     setSelectedDay(day);
@@ -47,10 +58,10 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
   const interactiveMode = subphase === "interactive";
 
   const handleAnyInteraction = useCallback(() => {
-    // No-op for now; wired to caption dismissal in a later commit.
+    // Wired to caption dismissal in a later commit.
   }, []);
 
-  // Construction sequence: place pieces according to TIMING.construction.sequence.
+  // Construction → demo → interactive sequence.
   useEffect(() => {
     if (subphase !== "construction") return;
     let cancelled = false;
@@ -60,26 +71,22 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
         setPlacedPieces(new Set(["nav", "sidebar", "head", "metrics", "table"]));
         await wait(300);
         if (cancelled) return;
-        setSubphase("interactive");
-        setShowReplay(true);
+        setSubphase("demo");
         return;
       }
 
       const sequence = TIMING.construction.sequence;
+      let prev = 0;
       for (const step of sequence) {
         if (cancelled) return;
-        await wait(step.startAtMs - (sequence[sequence.indexOf(step) - 1]?.startAtMs ?? 0));
+        await wait(step.startAtMs - prev);
+        prev = step.startAtMs;
         if (cancelled) return;
-        setPlacedPieces((prev) => new Set(prev).add(step.key));
+        setPlacedPieces((p) => new Set(p).add(step.key));
       }
       await wait(TIMING.construction.completionPauseMs);
       if (cancelled) return;
-
-      // DECISION: demo + caption land in subsequent commits. For now, jump to
-      // interactive mode immediately after construction. The tool is usable as
-      // soon as all pieces are placed — a valid fallback state.
-      setSubphase("interactive");
-      setShowReplay(true);
+      setSubphase("demo");
     })();
 
     return () => {
@@ -87,19 +94,68 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
     };
   }, [subphase, reducedMotion]);
 
+  // DECISION: caption subphase lands in a subsequent commit. For now, when demo
+  // completes we jump directly to interactive mode (which is the post-caption
+  // state) and reveal the Replay button.
+  const handleDemoComplete = useCallback(() => {
+    setSubphase("interactive");
+    setShowReplay(true);
+  }, []);
+
+  const getTargetRect = useCallback((target: DemoTarget): DOMRect | null => {
+    if (target.type === "prevMonth") return prevArrowRef.current?.getBoundingClientRect() ?? null;
+    if (target.type === "nextMonth") return nextArrowRef.current?.getBoundingClientRect() ?? null;
+    if (target.type === "day") return dayCellsRef.current.get(target.day)?.getBoundingClientRect() ?? null;
+    if (target.type === "artist") return artistRowsRef.current.get(target.id)?.getBoundingClientRect() ?? null;
+    return null;
+  }, []);
+
+  const getScalerRect = useCallback(
+    () => rootRef.current?.getBoundingClientRect() ?? null,
+    [],
+  );
+
   return (
-    <Beat3Tool
-      placedPieces={placedPieces}
-      selectedMonthIdx={selectedMonthIdx}
-      selectedDay={selectedDay}
-      selectedArtists={selectedArtists}
-      interactiveMode={interactiveMode}
-      onMonthChange={handleMonthChange}
-      onDayClick={handleDayClick}
-      onArtistToggle={handleArtistToggle}
-      onAnyInteraction={handleAnyInteraction}
-      showReplay={showReplay}
-      onReplay={onReplay}
-    />
+    <div ref={rootRef} style={{ position: "relative", width: "100%", height: "100%" }}>
+      <Beat3Tool
+        placedPieces={placedPieces}
+        selectedMonthIdx={selectedMonthIdx}
+        selectedDay={selectedDay}
+        selectedArtists={selectedArtists}
+        interactiveMode={interactiveMode}
+        onMonthChange={handleMonthChange}
+        onDayClick={handleDayClick}
+        onArtistToggle={handleArtistToggle}
+        onAnyInteraction={handleAnyInteraction}
+        showReplay={showReplay}
+        onReplay={onReplay}
+        dayCellRefCallback={(day, el) => {
+          if (el) dayCellsRef.current.set(day, el);
+          else dayCellsRef.current.delete(day);
+        }}
+        prevMonthArrowRef={(el) => {
+          prevArrowRef.current = el;
+        }}
+        nextMonthArrowRef={(el) => {
+          nextArrowRef.current = el;
+        }}
+        artistRowRefCallback={(id, el) => {
+          if (el) artistRowsRef.current.set(id, el);
+          else artistRowsRef.current.delete(id);
+        }}
+      />
+
+      {subphase === "demo" && (
+        <Beat3Demo
+          reducedMotion={reducedMotion}
+          getTargetRect={getTargetRect}
+          getScalerRect={getScalerRect}
+          onAdvanceMonth={handleAdvanceMonth}
+          onSelectDay={handleDayClick}
+          onToggleArtist={handleArtistToggle}
+          onComplete={handleDemoComplete}
+        />
+      )}
+    </div>
   );
 }
