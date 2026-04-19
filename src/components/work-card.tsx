@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { clsx } from "clsx";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
+import { ReelPoster } from "./yonas-media/reel/ReelPoster";
 
 const ApplyFlowPrototype = dynamic(
   () => import("./homedepot/ApplyFlowPrototype").then((m) => m.ApplyFlowPrototype),
@@ -15,7 +16,7 @@ const ProfileBuilderPrototype = dynamic(
 );
 const YonasReel = dynamic(
   () => import("./yonas-media/reel").then((m) => m.YonasReel),
-  { ssr: false },
+  { ssr: false, loading: () => <ReelPoster /> },
 );
 
 const componentMap: Record<string, React.ComponentType> = {

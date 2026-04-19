@@ -2,14 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
-import { ReelPoster } from "./ReelPoster";
 import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
 import { TransitionCollapse } from "./TransitionCollapse";
 import { Beat3Panel } from "./Beat3Panel";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
-type Phase = "idle" | "beat1" | "beat2" | "transition" | "beat3";
+type Phase = "beat1" | "beat2" | "transition" | "beat3";
 
 type Token = { cancelled: boolean };
 
@@ -18,9 +17,9 @@ export function YonasReel() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const scalerRef = useRef<HTMLDivElement | null>(null);
 
-  const [mountInterior, setMountInterior] = useState(false);
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>("beat1");
   const [replayCount, setReplayCount] = useState(0);
+  const hasPlayedOnceRef = useRef(false);
 
   const currentTokenRef = useRef<Token | null>(null);
 
@@ -42,40 +41,8 @@ export function YonasReel() {
     setReplayCount((n) => n + 1);
   }, []);
 
-  // Viewport gating.
+  // Scale-to-fit: 1440px native → container width.
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-    const nearObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setMountInterior(true);
-        }
-      },
-      { rootMargin: `${Math.round(vh * 1.5)}px 0px` },
-    );
-    nearObserver.observe(el);
-
-    const farObserver = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) setMountInterior(false);
-        }
-      },
-      { rootMargin: `${Math.round(vh * 2)}px 0px` },
-    );
-    farObserver.observe(el);
-
-    return () => {
-      nearObserver.disconnect();
-      farObserver.disconnect();
-    };
-  }, []);
-
-  // Scale-to-fit.
-  useEffect(() => {
-    if (!mountInterior) return;
     const frame = containerRef.current;
     const scaler = scalerRef.current;
     if (!frame || !scaler) return;
@@ -88,17 +55,10 @@ export function YonasReel() {
     const ro = new ResizeObserver(apply);
     ro.observe(frame);
     return () => ro.disconnect();
-  }, [mountInterior]);
+  }, []);
 
-  // Orchestrator. Replay bumps replayCount which re-fires this effect from the top.
+  // Orchestrator. Runs on mount and on each replay. Cancels on unmount.
   useEffect(() => {
-    if (!mountInterior) {
-      if (currentTokenRef.current) currentTokenRef.current.cancelled = true;
-      beatDoneRef.current = null;
-      setPhase("idle");
-      return;
-    }
-
     const token: Token = { cancelled: false };
     if (currentTokenRef.current) currentTokenRef.current.cancelled = true;
     currentTokenRef.current = token;
@@ -124,15 +84,28 @@ export function YonasReel() {
       token.cancelled = true;
       beatDoneRef.current = null;
     };
-  }, [mountInterior, reducedMotion, replayCount, awaitBeat]);
+  }, [replayCount, awaitBeat]);
 
-  if (!mountInterior) {
-    return (
-      <div ref={containerRef} className="relative w-full">
-        <ReelPoster />
-      </div>
+  // Viewport-based replay: when the reel re-enters the viewport after leaving, replay from the top.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            if (hasPlayedOnceRef.current) {
+              setReplayCount((n) => n + 1);
+            }
+            hasPlayedOnceRef.current = true;
+          }
+        }
+      },
+      { threshold: 0.3 },
     );
-  }
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <>
