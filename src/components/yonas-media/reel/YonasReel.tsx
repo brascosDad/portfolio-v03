@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { ReelPoster } from "./ReelPoster";
-import { COLORS, NATIVE_WIDTH, NATIVE_HEIGHT } from "./tokens";
+import { Beat1Email } from "./Beat1Email";
+import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
 type Phase =
   | "idle"
@@ -26,18 +27,33 @@ export function YonasReel() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const scalerRef = useRef<HTMLDivElement | null>(null);
 
-  // Viewport-gated mount of the heavy interior. Poster renders until we're near viewport.
   const [mountInterior, setMountInterior] = useState(false);
   const [phase, setPhase] = useState<Phase>("idle");
 
   const currentTokenRef = useRef<Token | null>(null);
 
-  // IntersectionObserver: mount interior when within ~1.5× viewport, unmount when far.
+  // Beat-completion signal: each beat component calls onComplete → resolves the promise
+  // the orchestrator is awaiting. Orchestrator then advances phase.
+  const beatDoneRef = useRef<(() => void) | null>(null);
+  const awaitBeat = useCallback(
+    () =>
+      new Promise<void>((resolve) => {
+        beatDoneRef.current = resolve;
+      }),
+    [],
+  );
+  const handleBeatComplete = useCallback(() => {
+    const resolver = beatDoneRef.current;
+    beatDoneRef.current = null;
+    resolver?.();
+  }, []);
+
+  // Viewport gating — mount interior when ~1.5× viewport near, unmount when ~2× far.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const vh = typeof window !== "undefined" ? window.innerHeight : 800;
-    const observer = new IntersectionObserver(
+    const nearObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) setMountInterior(true);
@@ -45,15 +61,12 @@ export function YonasReel() {
       },
       { rootMargin: `${Math.round(vh * 1.5)}px 0px` },
     );
-    observer.observe(el);
+    nearObserver.observe(el);
 
-    // Unmount when we're more than 2× viewport away (scrolled far past).
     const farObserver = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (!entry.isIntersecting) {
-            setMountInterior(false);
-          }
+          if (!entry.isIntersecting) setMountInterior(false);
         }
       },
       { rootMargin: `${Math.round(vh * 2)}px 0px` },
@@ -61,18 +74,17 @@ export function YonasReel() {
     farObserver.observe(el);
 
     return () => {
-      observer.disconnect();
+      nearObserver.disconnect();
       farObserver.disconnect();
     };
   }, []);
 
-  // Scale-to-fit: 1440px native → container width, with container height matching scaled content.
+  // Scale-to-fit: 1440px native → container width.
   useEffect(() => {
     if (!mountInterior) return;
     const frame = containerRef.current;
     const scaler = scalerRef.current;
     if (!frame || !scaler) return;
-
     const apply = () => {
       const scale = Math.min(1, frame.clientWidth / NATIVE_WIDTH);
       scaler.style.transform = `scale(${scale})`;
@@ -84,27 +96,27 @@ export function YonasReel() {
     return () => ro.disconnect();
   }, [mountInterior]);
 
-  // Master orchestrator. Runs when the interior is mounted and visible.
+  // Master orchestrator.
   useEffect(() => {
     if (!mountInterior) {
-      currentTokenRef.current && (currentTokenRef.current.cancelled = true);
+      if (currentTokenRef.current) currentTokenRef.current.cancelled = true;
+      beatDoneRef.current = null;
       setPhase("idle");
       return;
     }
 
     const token: Token = { cancelled: false };
-    currentTokenRef.current && (currentTokenRef.current.cancelled = true);
+    if (currentTokenRef.current) currentTokenRef.current.cancelled = true;
     currentTokenRef.current = token;
 
     (async () => {
-      // DECISION: scaffold stubs advance through each phase on a fixed timer so the
-      // orchestration pipeline can be validated before each beat is implemented.
-      // Individual beats replace these awaits with their own async choreography in
-      // subsequent commits. Reduced motion is respected with compressed timing.
-      const r = reducedMotion;
       setPhase("beat1");
-      await wait(r ? 300 : 8000);
+      await awaitBeat();
       if (token.cancelled) return;
+
+      // DECISION: Beat 2 onward are still stub timers in this commit; they become
+      // promise-awaited as each beat component lands.
+      const r = reducedMotion;
       setPhase("beat2");
       await wait(r ? 300 : 16000);
       if (token.cancelled) return;
@@ -125,8 +137,9 @@ export function YonasReel() {
 
     return () => {
       token.cancelled = true;
+      beatDoneRef.current = null;
     };
-  }, [mountInterior, reducedMotion]);
+  }, [mountInterior, reducedMotion, awaitBeat]);
 
   if (!mountInterior) {
     return (
@@ -153,43 +166,43 @@ export function YonasReel() {
         <div
           ref={scalerRef}
           className="origin-top-left"
-          style={{
-            width: NATIVE_WIDTH,
-            height: NATIVE_HEIGHT,
-            position: "relative",
-          }}
+          style={{ width: NATIVE_WIDTH, height: NATIVE_HEIGHT, position: "relative" }}
         >
-          {/* Phase placeholder — beat components replace this panel-by-panel. */}
-          <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{ background: COLORS.bg, color: COLORS.onSurface }}
-          >
-            <div className="text-center">
-              <p
-                style={{
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "rgba(26, 28, 28, 0.5)",
-                }}
-              >
-                Yonas Media · Hero Reel
-              </p>
-              <p
-                style={{
-                  marginTop: 8,
-                  fontFamily: "var(--font-space-grotesk)",
-                  fontSize: 40,
-                  fontWeight: 700,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {phaseLabel(phase)}
-              </p>
+          {phase === "beat1" && (
+            <Beat1Email reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
+          )}
+          {phase !== "beat1" && (
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ background: COLORS.bg, color: COLORS.onSurface }}
+            >
+              <div className="text-center">
+                <p
+                  style={{
+                    fontFamily: "var(--font-space-grotesk)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "rgba(26, 28, 28, 0.5)",
+                  }}
+                >
+                  Yonas Media · Hero Reel
+                </p>
+                <p
+                  style={{
+                    marginTop: 8,
+                    fontFamily: "var(--font-space-grotesk)",
+                    fontSize: 40,
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {phaseLabel(phase)}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>
@@ -198,13 +211,21 @@ export function YonasReel() {
 
 function phaseLabel(phase: Phase) {
   switch (phase) {
-    case "beat1": return "Beat 1 · Email";
-    case "beat2": return "Beat 2 · Sheets";
-    case "transition": return "Transition · Collapse";
-    case "construction": return "Beat 3a · Construction";
-    case "demo": return "Beat 3b · Demo";
-    case "caption": return "Caption";
-    case "interactive": return "Beat 3c · Interactive";
-    default: return "Loading…";
+    case "beat1":
+      return "Beat 1 · Email";
+    case "beat2":
+      return "Beat 2 · Sheets";
+    case "transition":
+      return "Transition · Collapse";
+    case "construction":
+      return "Beat 3a · Construction";
+    case "demo":
+      return "Beat 3b · Demo";
+    case "caption":
+      return "Caption";
+    case "interactive":
+      return "Beat 3c · Interactive";
+    default:
+      return "Loading…";
   }
 }
