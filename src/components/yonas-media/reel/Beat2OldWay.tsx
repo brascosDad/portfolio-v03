@@ -198,7 +198,7 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
   );
 }
 
-function SheetsTopBar() {
+export function SheetsTopBar() {
   return (
     <div
       style={{
@@ -270,7 +270,7 @@ function SheetsTopBar() {
   );
 }
 
-function SheetsMenuBar() {
+export function SheetsMenuBar() {
   const items = ["File", "Edit", "View", "Insert", "Format", "Data", "Tools", "Extensions", "Help"];
   return (
     <div
@@ -293,7 +293,7 @@ function SheetsMenuBar() {
   );
 }
 
-function SheetsToolbar() {
+export function SheetsToolbar() {
   return (
     <div
       style={{
@@ -326,7 +326,7 @@ function SheetsToolbar() {
   );
 }
 
-function ColumnHeaders() {
+export function ColumnHeaders() {
   return (
     <div
       style={{
@@ -466,7 +466,7 @@ function VerdictStamp({
   );
 }
 
-function SheetTabStrip({ activeTabIdx }: { activeTabIdx: number }) {
+export function SheetTabStrip({ activeTabIdx }: { activeTabIdx: number }) {
   return (
     <div
       style={{

@@ -5,6 +5,7 @@ import { useReducedMotion } from "motion/react";
 import { ReelPoster } from "./ReelPoster";
 import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
+import { TransitionCollapse } from "./TransitionCollapse";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
 type Phase =
@@ -119,11 +120,12 @@ export function YonasReel() {
       await awaitBeat();
       if (token.cancelled) return;
 
-      // DECISION: transition onward are still stub timers until each beat lands.
-      const r = reducedMotion;
       setPhase("transition");
-      await wait(r ? 500 : 3500);
+      await awaitBeat();
       if (token.cancelled) return;
+
+      // DECISION: construction onward are still stub timers until each beat lands.
+      const r = reducedMotion;
       setPhase("construction");
       await wait(r ? 300 : 2200);
       if (token.cancelled) return;
@@ -175,7 +177,10 @@ export function YonasReel() {
           {phase === "beat2" && (
             <Beat2OldWay reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
           )}
-          {phase !== "beat1" && phase !== "beat2" && (
+          {phase === "transition" && (
+            <TransitionCollapse reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
+          )}
+          {phase !== "beat1" && phase !== "beat2" && phase !== "transition" && (
             <div
               className="absolute inset-0 flex items-center justify-center"
               style={{ background: COLORS.bg, color: COLORS.onSurface }}
