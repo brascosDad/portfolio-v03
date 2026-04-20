@@ -8,10 +8,12 @@ import {
   buildOldWaySheetData,
   SheetRow,
 } from "./data";
+import { StoryState } from "./StoryStrip";
 import { COLORS, FONTS, TIMING } from "./tokens";
 
 interface Beat2Props {
   reducedMotion: boolean;
+  onStoryUpdate: (patch: Partial<StoryState>) => void;
   onComplete: () => void;
 }
 
@@ -29,7 +31,10 @@ const TARGET_SCROLL_Y = -(
   ROW_HEIGHT / 2
 );
 
-// Total real-time duration of Beat 2 (used to scale the fake 13:00 timer).
+// Total real-time duration of Beat 2 through the end of the final tab's
+// dwell. Used to scale the fake 13:00 timer so it hits 13:00 exactly when
+// the last verdict has settled — then the timer freezes while the "No
+// match" story line shows before the crumble transition fires.
 const BEAT2_TOTAL_REAL_MS =
   BEAT2_TABS.length *
     (300 + // per-tab settle
@@ -40,43 +45,66 @@ const BEAT2_TOTAL_REAL_MS =
       TIMING.beat2.tabDwellMs) +
   (BEAT2_TABS.length - 1) * (TIMING.beat2.tabDipMs + TIMING.beat2.tabFadeInMs);
 
-function formatTimer(ms: number) {
-  const totalSec = Math.min(13 * 60, Math.floor(ms / 1000));
-  const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
-  const ss = String(totalSec % 60).padStart(2, "0");
-  return `${mm}:${ss}`;
-}
+// Dwell after the last verdict before handing off to the transition.
+const NO_MATCH_DWELL_MS = 1400;
 
-export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
+const SCROLL_COPY = [
+  "Scrolling to March 1 · Cora Lane",
+  "Now Jonah Ellery",
+  "Now The Marcel Trio",
+];
+const VERDICT_COPY = ["Cora — booked", "Jonah — booked", "Marcel — on hold"];
+const NO_MATCH_COPY = "No match. Time to try something else.";
+
+export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2Props) {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
   const [scrollY, setScrollY] = useState(0);
   const [focused, setFocused] = useState(false);
   const [verdictShown, setVerdictShown] = useState(false);
   const [innerFaded, setInnerFaded] = useState(false);
-  const [fakeElapsedMs, setFakeElapsedMs] = useState(0);
 
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  const onStoryRef = useRef(onStoryUpdate);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  useEffect(() => {
+    onStoryRef.current = onStoryUpdate;
+  }, [onStoryUpdate]);
 
   const tab = BEAT2_TABS[activeTabIdx];
   const focal = BEAT2_FOCAL[tab.id as "cora" | "jonah" | "marcel"];
 
   const rows = useMemo(
     () => buildOldWaySheetData(tab.seed, focal),
-    [tab.seed, focal.venue, focal.verdict],
+    [tab.seed, focal],
   );
 
+  // Initialize the story strip for this beat.
+  useEffect(() => {
+    onStoryRef.current({
+      eyebrow: "The old way",
+      text: SCROLL_COPY[0],
+      timerMs: 0,
+      emphasize: false,
+    });
+  }, []);
+
   // Fake timer: ticks 100ms, maps real elapsed → 0..13:00 over BEAT2_TOTAL_REAL_MS.
+  // Reports the value up to the story strip. The beat's orchestration
+  // freezes the timer at 13:00 by stopping this interval.
+  const timerFrozenRef = useRef(false);
   useEffect(() => {
     if (reducedMotion) return;
     const start = performance.now();
     const iv = setInterval(() => {
+      if (timerFrozenRef.current) return;
       const elapsed = performance.now() - start;
       const fake = Math.min(
         TIMING.beat2.timerTotalMs,
         (elapsed / BEAT2_TOTAL_REAL_MS) * TIMING.beat2.timerTotalMs,
       );
-      setFakeElapsedMs(fake);
+      onStoryRef.current({ timerMs: fake });
     }, TIMING.beat2.timerTickMs);
     return () => clearInterval(iv);
   }, [reducedMotion]);
@@ -90,8 +118,16 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
         for (let i = 0; i < BEAT2_TABS.length; i++) {
           if (cancelled) return;
           setActiveTabIdx(i);
+          onStoryRef.current({ text: VERDICT_COPY[i] });
           await wait(300);
         }
+        if (cancelled) return;
+        timerFrozenRef.current = true;
+        onStoryRef.current({
+          text: NO_MATCH_COPY,
+          timerMs: TIMING.beat2.timerTotalMs,
+        });
+        await wait(600);
         if (cancelled) return;
         onCompleteRef.current();
         return;
@@ -104,6 +140,7 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
         setFocused(false);
         setVerdictShown(false);
         setInnerFaded(false);
+        onStoryRef.current({ text: SCROLL_COPY[tabIdx] });
         // Allow the tab switch + fade-in to settle before the scroll begins.
         await wait(TIMING.beat2.tabFadeInMs);
         if (cancelled) return;
@@ -118,8 +155,9 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
         await wait(TIMING.beat2.rowScaleMs + TIMING.beat2.verdictStampDelay);
         if (cancelled) return;
 
-        // Pop verdict stamp.
+        // Pop verdict stamp + swap narration to the verdict line.
         setVerdictShown(true);
+        onStoryRef.current({ text: VERDICT_COPY[tabIdx] });
         await wait(TIMING.beat2.verdictStampMs);
         if (cancelled) return;
 
@@ -135,6 +173,16 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
       }
 
       if (cancelled) return;
+
+      // Freeze the timer and swap narration to the "no match" line.
+      timerFrozenRef.current = true;
+      onStoryRef.current({
+        text: NO_MATCH_COPY,
+        timerMs: TIMING.beat2.timerTotalMs,
+      });
+      await wait(NO_MATCH_DWELL_MS);
+      if (cancelled) return;
+
       onCompleteRef.current();
     })();
 
@@ -153,6 +201,7 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
         color: COLORS.gmailTextPrimary,
         display: "flex",
         flexDirection: "column",
+        position: "relative",
       }}
     >
       <SheetsTopBar />
@@ -193,7 +242,6 @@ export function Beat2OldWay({ reducedMotion, onComplete }: Beat2Props) {
       </div>
 
       <SheetTabStrip activeTabIdx={activeTabIdx} />
-      <SheetTimer fakeMs={fakeElapsedMs} />
     </div>
   );
 }
@@ -220,7 +268,7 @@ export function SheetsTopBar() {
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 16, color: COLORS.gmailTextPrimary, fontWeight: 500 }}>
-            Yonas_Bookings_2026
+            Yonas_Bookings_2027
           </span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
             <path
@@ -503,29 +551,6 @@ export function SheetTabStrip({ activeTabIdx }: { activeTabIdx: number }) {
           </div>
         );
       })}
-    </div>
-  );
-}
-
-function SheetTimer({ fakeMs }: { fakeMs: number }) {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: 20,
-        right: 28,
-        padding: "8px 14px",
-        background: "rgba(26,28,28,0.82)",
-        color: "#fff",
-        fontFamily: FONTS.mono,
-        fontSize: 14,
-        fontWeight: 600,
-        letterSpacing: "0.04em",
-        borderRadius: 6,
-        boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
-      }}
-    >
-      {formatTimer(fakeMs)}
     </div>
   );
 }

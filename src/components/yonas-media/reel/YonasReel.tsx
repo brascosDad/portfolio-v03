@@ -6,11 +6,17 @@ import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
 import { TransitionCollapse } from "./TransitionCollapse";
 import { Beat3Panel } from "./Beat3Panel";
+import { StoryStrip, StoryState, INITIAL_STORY } from "./StoryStrip";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
 type Phase = "beat1" | "beat2" | "transition" | "beat3";
 
 type Token = { cancelled: boolean };
+
+// MacBook-style silver bezel. Darker than polished silver, closer to
+// space-gray so the frame reads as a discrete object against the light
+// bento-cell background.
+const LAPTOP_BEZEL_COLOR = "#8a8a8c";
 
 export function YonasReel() {
   const reducedMotion = useReducedMotion();
@@ -20,6 +26,7 @@ export function YonasReel() {
   const [phase, setPhase] = useState<Phase>("beat1");
   const [replayCount, setReplayCount] = useState(0);
   const hasPlayedOnceRef = useRef(false);
+  const [story, setStory] = useState<StoryState>(INITIAL_STORY);
 
   const currentTokenRef = useRef<Token | null>(null);
 
@@ -35,6 +42,10 @@ export function YonasReel() {
     const resolver = beatDoneRef.current;
     beatDoneRef.current = null;
     resolver?.();
+  }, []);
+
+  const handleStoryUpdate = useCallback((patch: Partial<StoryState>) => {
+    setStory((s) => ({ ...s, ...patch }));
   }, []);
 
   const handleReplay = useCallback(() => {
@@ -64,6 +75,7 @@ export function YonasReel() {
     currentTokenRef.current = token;
 
     (async () => {
+      setStory(INITIAL_STORY);
       setPhase("beat1");
       await awaitBeat();
       if (token.cancelled) return;
@@ -116,28 +128,55 @@ export function YonasReel() {
         is introduced and answers the same inquiry in seconds, finding a fourth artist
         available.
       </h2>
-      <div
-        ref={containerRef}
-        className="relative w-full overflow-hidden"
-        style={{ background: COLORS.bg }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+        <StoryStrip state={story} onReplay={handleReplay} />
         <div
-          ref={scalerRef}
-          className="origin-top-left"
-          style={{ width: NATIVE_WIDTH, height: NATIVE_HEIGHT, position: "relative" }}
+          style={{
+            border: `15px solid ${LAPTOP_BEZEL_COLOR}`,
+            borderRadius: 20,
+            overflow: "hidden",
+            background: LAPTOP_BEZEL_COLOR,
+          }}
         >
-          {phase === "beat1" && (
-            <Beat1Email reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
-          )}
-          {phase === "beat2" && (
-            <Beat2OldWay reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
-          )}
-          {phase === "transition" && (
-            <TransitionCollapse reducedMotion={!!reducedMotion} onComplete={handleBeatComplete} />
-          )}
-          {phase === "beat3" && (
-            <Beat3Panel reducedMotion={!!reducedMotion} onReplay={handleReplay} />
-          )}
+          <div
+            ref={containerRef}
+            className="relative w-full overflow-hidden"
+            style={{ background: COLORS.bg }}
+          >
+            <div
+              ref={scalerRef}
+              className="origin-top-left"
+              style={{ width: NATIVE_WIDTH, height: NATIVE_HEIGHT, position: "relative" }}
+            >
+              {phase === "beat1" && (
+                <Beat1Email
+                  reducedMotion={!!reducedMotion}
+                  onStoryUpdate={handleStoryUpdate}
+                  onComplete={handleBeatComplete}
+                />
+              )}
+              {phase === "beat2" && (
+                <Beat2OldWay
+                  reducedMotion={!!reducedMotion}
+                  onStoryUpdate={handleStoryUpdate}
+                  onComplete={handleBeatComplete}
+                />
+              )}
+              {phase === "transition" && (
+                <TransitionCollapse
+                  reducedMotion={!!reducedMotion}
+                  onStoryUpdate={handleStoryUpdate}
+                  onComplete={handleBeatComplete}
+                />
+              )}
+              {phase === "beat3" && (
+                <Beat3Panel
+                  reducedMotion={!!reducedMotion}
+                  onStoryUpdate={handleStoryUpdate}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </>

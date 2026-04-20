@@ -18,6 +18,7 @@ interface Beat3DemoProps {
   onAdvanceMonth: () => void;
   onSelectDay: (day: number) => void;
   onToggleArtist: (id: ArtistId) => void;
+  onAnnotationChange?: (text: string) => void;
   onComplete: () => void;
 }
 
@@ -38,6 +39,7 @@ export function Beat3Demo({
   onAdvanceMonth,
   onSelectDay,
   onToggleArtist,
+  onAnnotationChange,
   onComplete,
 }: Beat3DemoProps) {
   const [cursorPos, setCursorPos] = useState<{ x: number | null; y: number | null }>({ x: null, y: null });
@@ -45,30 +47,58 @@ export function Beat3Demo({
   const [pulses, setPulses] = useState<Pulse[]>([]);
   const pulseIdRef = useRef(0);
 
+  // All callback props are threaded through refs so the demo-orchestration
+  // effect can be a one-shot (empty deps, cancels on unmount). Stale
+  // closures can't bite us because we always read `*.current` at call time.
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
-  // Convert a target's viewport rect to native scaler coordinates (1440×900 space).
-  const resolveNativePoint = (target: DemoTarget): { x: number; y: number } | null => {
-    const rect = getTargetRect(target);
-    const scalerRect = getScalerRect();
-    if (!rect || !scalerRect || scalerRect.width === 0) return null;
-    const scale = scalerRect.width / NATIVE_WIDTH;
-    const cx = (rect.left + rect.width / 2 - scalerRect.left) / scale;
-    const cy = (rect.top + rect.height / 2 - scalerRect.top) / scale;
-    return { x: cx, y: cy };
-  };
-
-  const firePulse = (x: number, y: number) => {
-    const id = ++pulseIdRef.current;
-    setPulses((prev) => [...prev, { id, x, y }]);
-    setTimeout(() => {
-      setPulses((prev) => prev.filter((p) => p.id !== id));
-    }, TIMING.demo.pulseDurationMs);
-  };
+  const onAnnotationRef = useRef(onAnnotationChange);
+  const getTargetRectRef = useRef(getTargetRect);
+  const getScalerRectRef = useRef(getScalerRect);
+  const onAdvanceMonthRef = useRef(onAdvanceMonth);
+  const onSelectDayRef = useRef(onSelectDay);
+  const onToggleArtistRef = useRef(onToggleArtist);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  useEffect(() => {
+    onAnnotationRef.current = onAnnotationChange;
+  }, [onAnnotationChange]);
+  useEffect(() => {
+    getTargetRectRef.current = getTargetRect;
+  }, [getTargetRect]);
+  useEffect(() => {
+    getScalerRectRef.current = getScalerRect;
+  }, [getScalerRect]);
+  useEffect(() => {
+    onAdvanceMonthRef.current = onAdvanceMonth;
+  }, [onAdvanceMonth]);
+  useEffect(() => {
+    onSelectDayRef.current = onSelectDay;
+  }, [onSelectDay]);
+  useEffect(() => {
+    onToggleArtistRef.current = onToggleArtist;
+  }, [onToggleArtist]);
 
   useEffect(() => {
     let cancelled = false;
+
+    const resolveNativePoint = (target: DemoTarget): { x: number; y: number } | null => {
+      const rect = getTargetRectRef.current(target);
+      const scalerRect = getScalerRectRef.current();
+      if (!rect || !scalerRect || scalerRect.width === 0) return null;
+      const scale = scalerRect.width / NATIVE_WIDTH;
+      const cx = (rect.left + rect.width / 2 - scalerRect.left) / scale;
+      const cy = (rect.top + rect.height / 2 - scalerRect.top) / scale;
+      return { x: cx, y: cy };
+    };
+
+    const firePulse = (x: number, y: number) => {
+      const id = ++pulseIdRef.current;
+      setPulses((prev) => [...prev, { id, x, y }]);
+      setTimeout(() => {
+        setPulses((prev) => prev.filter((p) => p.id !== id));
+      }, TIMING.demo.pulseDurationMs);
+    };
 
     const moveCursorTo = async (target: DemoTarget, dwellMs: number) => {
       const pt = resolveNativePoint(target);
@@ -81,26 +111,33 @@ export function Beat3Demo({
       return pt;
     };
 
+    const setAnnotation = (text: string) => {
+      onAnnotationRef.current?.(text);
+    };
+
     (async () => {
       if (reducedMotion) {
         // Reduced-motion path: no cursor, state changes only with pulses.
-        onAdvanceMonth();
+        setAnnotation("Pick the date");
+        onAdvanceMonthRef.current();
         await wait(TIMING.demo.calendarMonthStepMs);
         if (cancelled) return;
-        onAdvanceMonth();
+        onAdvanceMonthRef.current();
         await wait(TIMING.demo.calendarMonthStepMs);
         if (cancelled) return;
-        onSelectDay(1);
+        onSelectDayRef.current(1);
         await wait(TIMING.demo.dateClickPauseMs);
         if (cancelled) return;
+        setAnnotation("Scan the roster");
         for (const id of ["cora", "jonah", "marcel"] as ArtistId[]) {
           if (cancelled) return;
-          onToggleArtist(id);
+          onToggleArtistRef.current(id);
           await wait(TIMING.demo.artistClickIntervalMs);
         }
         await wait(TIMING.demo.threeRowsHoldMs);
         if (cancelled) return;
-        onToggleArtist("lila");
+        setAnnotation("Who's free?");
+        onToggleArtistRef.current("lila");
         await wait(TIMING.caption.showDelayMs);
         if (cancelled) return;
         onCompleteRef.current();
@@ -108,7 +145,7 @@ export function Beat3Demo({
       }
 
       // 1. Fade cursor in near center of main content.
-      const scalerRect = getScalerRect();
+      const scalerRect = getScalerRectRef.current();
       if (scalerRect) {
         setCursorPos({ x: 720, y: 450 });
       }
@@ -117,48 +154,51 @@ export function Beat3Demo({
       setCursorVisible(true);
       await wait(300);
 
-      // 2. Move to next-month arrow, pulse, advance Jan → Feb.
+      // 2. Annotation: Pick the date. Cursor heads to the next-month arrow.
+      setAnnotation("Pick the date");
       await moveCursorTo({ type: "nextMonth" }, 0);
       if (cancelled) return;
-      onAdvanceMonth();
+      onAdvanceMonthRef.current();
       await wait(TIMING.demo.calendarMonthStepMs);
       if (cancelled) return;
 
-      // 3. Move to next-month again, advance Feb → Mar.
+      // 3. Next-month arrow again, Feb → Mar.
       await moveCursorTo({ type: "nextMonth" }, 0);
       if (cancelled) return;
-      onAdvanceMonth();
+      onAdvanceMonthRef.current();
       await wait(TIMING.demo.calendarMonthStepMs);
       if (cancelled) return;
 
-      // 4. Move to March 1 cell.
+      // 4. Click March 1.
       await moveCursorTo({ type: "day", day: 1 }, 0);
       if (cancelled) return;
-      onSelectDay(1);
+      onSelectDayRef.current(1);
       await wait(TIMING.demo.dateClickPauseMs);
       if (cancelled) return;
 
-      // 5. Cora → Jonah → Marcel (same-answer beat).
+      // 5. Annotation: Scan the roster. Cora → Jonah → Marcel.
+      setAnnotation("Scan the roster");
       for (const id of ["cora", "jonah", "marcel"] as ArtistId[]) {
         if (cancelled) return;
         await moveCursorTo({ type: "artist", id }, 0);
         if (cancelled) return;
-        onToggleArtist(id);
+        onToggleArtistRef.current(id);
         await wait(TIMING.demo.artistClickIntervalMs);
       }
 
-      // 6. Hold on the three unavailable rows.
+      // 6. Hold on the three booked/hold rows.
       await wait(TIMING.demo.threeRowsHoldMs);
       if (cancelled) return;
 
-      // 7. Lila Moreno — the open night.
+      // 7. Annotation: Who's free? Then reveal Lila Moreno as the open night.
+      setAnnotation("Who's free?");
       await moveCursorTo({ type: "artist", id: "lila" }, 0);
       if (cancelled) return;
-      onToggleArtist("lila");
+      onToggleArtistRef.current("lila");
       await wait(TIMING.caption.showDelayMs);
       if (cancelled) return;
 
-      // Hide cursor for caption phase.
+      // Hide cursor for the caption/your-turn phases.
       setCursorVisible(false);
       await wait(300);
       if (cancelled) return;

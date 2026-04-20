@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BEAT1_EMAIL } from "./data";
+import { StoryState } from "./StoryStrip";
 import { COLORS, FONTS, TIMING } from "./tokens";
 
 interface Beat1EmailProps {
   reducedMotion: boolean;
+  onStoryUpdate: (patch: Partial<StoryState>) => void;
   onComplete: () => void;
 }
 
@@ -13,12 +15,27 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export function Beat1Email({ reducedMotion, onComplete }: Beat1EmailProps) {
+export function Beat1Email({ reducedMotion, onStoryUpdate, onComplete }: Beat1EmailProps) {
   const [typed, setTyped] = useState<string[]>(() => BEAT1_EMAIL.lines.map(() => ""));
   const [activeLineIdx, setActiveLineIdx] = useState(0);
   const [finished, setFinished] = useState(false);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  const onStoryRef = useRef(onStoryUpdate);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  useEffect(() => {
+    onStoryRef.current = onStoryUpdate;
+  }, [onStoryUpdate]);
+
+  useEffect(() => {
+    onStoryRef.current({
+      eyebrow: "Inquiry",
+      text: "Dana at Blue Heron asks Ben if Cora, Jonah, or The Marcel Trio are free on March 1, 2027.",
+      timerMs: null,
+      emphasize: false,
+    });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

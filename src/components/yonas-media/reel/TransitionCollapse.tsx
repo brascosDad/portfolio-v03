@@ -9,9 +9,11 @@ import {
   ColumnHeaders,
   SheetTabStrip,
 } from "./Beat2OldWay";
+import { StoryState } from "./StoryStrip";
 
 interface TransitionProps {
   reducedMotion: boolean;
+  onStoryUpdate: (patch: Partial<StoryState>) => void;
   onComplete: () => void;
 }
 
@@ -39,7 +41,7 @@ const FAKE_ROWS: { dateLabel: string; venue: string; status: string; isFocal: bo
   (_, i) => {
     const focal = i === FOCAL_ROW_INDEX;
     if (focal) {
-      return { dateLabel: "3/1/26", venue: "Fox Theatre", status: "HOLD", isFocal: true };
+      return { dateLabel: "3/1/27", venue: "Fox Theatre", status: "HOLD", isFocal: true };
     }
     const seed = (i * 13) % 4;
     if (seed === 0) return { dateLabel: dateFor(i), venue: "Orpheum", status: "CONFIRMED", isFocal: false };
@@ -55,22 +57,36 @@ function dateFor(i: number): string {
   const absolute = mar1 + offsetFromFocal;
   const monthIdx = absolute <= 31 ? 0 : absolute <= 59 ? 1 : 2;
   const day = absolute - (monthIdx === 0 ? 0 : monthIdx === 1 ? 31 : 59);
-  return `${monthIdx + 1}/${day}/26`;
+  return `${monthIdx + 1}/${day}/27`;
 }
 
-export function TransitionCollapse({ reducedMotion, onComplete }: TransitionProps) {
-  // Timer phases: starts in corner, pulses to center, holds, falls.
-  const [timerPhase, setTimerPhase] = useState<"corner" | "center" | "falling" | "gone">("corner");
+export function TransitionCollapse({ reducedMotion, onStoryUpdate, onComplete }: TransitionProps) {
+  // Rows/chrome fall together after a short dwell. The narration strip
+  // carries the "No match" line and the frozen 13:00 timer from Beat 2.
   const [rowsFalling, setRowsFalling] = useState(false);
   const [chromeFalling, setChromeFalling] = useState(false);
 
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  const onStoryRef = useRef(onStoryUpdate);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+  useEffect(() => {
+    onStoryRef.current = onStoryUpdate;
+  }, [onStoryUpdate]);
 
   useEffect(() => {
     let cancelled = false;
     const fallOrder = computeFallOrder(VISIBLE_ROWS, FOCAL_ROW_INDEX);
     const lastFallDelay = fallOrder[fallOrder.length - 1].delayMs;
+
+    // Keep Beat 2's final story line visible through the crumble.
+    onStoryRef.current({
+      eyebrow: "The old way",
+      text: "No match. Time to try something else.",
+      timerMs: TIMING.beat2.timerTotalMs,
+      emphasize: false,
+    });
 
     (async () => {
       if (reducedMotion) {
@@ -80,34 +96,16 @@ export function TransitionCollapse({ reducedMotion, onComplete }: TransitionProp
         return;
       }
 
-      // 1. Timer scales up to viewport center with spring overshoot.
-      setTimerPhase("center");
-      await wait(TIMING.transition.timerPulseInMs);
+      // Short dwell so viewers can register the frozen timer + narration
+      // before the rows start to fall.
+      await wait(350);
       if (cancelled) return;
 
-      // 2. Hold at center.
-      await wait(TIMING.transition.timerHoldMs);
-      if (cancelled) return;
+      setRowsFalling(true);
+      setChromeFalling(true);
 
-      // 3. Timer falls; rows cascade starting just before timer clears.
-      setTimerPhase("falling");
-      setTimeout(() => {
-        if (!cancelled) setRowsFalling(true);
-      }, Math.max(0, TIMING.transition.timerFallMs - TIMING.transition.timerFallAndRowsOverlap));
-
-      // 4. Chrome (tab strip + column header) falls before the last row lands.
-      const lastRowLandTime =
-        Math.max(0, TIMING.transition.timerFallMs - TIMING.transition.timerFallAndRowsOverlap) +
-        lastFallDelay +
-        TIMING.transition.rowFallMs;
-      setTimeout(() => {
-        if (!cancelled) setChromeFalling(true);
-      }, lastRowLandTime + TIMING.transition.tabStripFallLead);
-
-      await wait(lastRowLandTime + 200);
-      if (cancelled) return;
-      setTimerPhase("gone");
-      await wait(200);
+      const lastRowLandTime = lastFallDelay + TIMING.transition.rowFallMs;
+      await wait(lastRowLandTime + 150);
       if (cancelled) return;
       onCompleteRef.current();
     })();
@@ -133,7 +131,7 @@ export function TransitionCollapse({ reducedMotion, onComplete }: TransitionProp
         overflow: "hidden",
       }}
     >
-      {/* Static sheet chrome snapshot. Falls away near the end. */}
+      {/* Static sheet chrome snapshot. Falls away on crumble. */}
       <div
         style={{
           transition: chromeFalling
@@ -236,77 +234,6 @@ export function TransitionCollapse({ reducedMotion, onComplete }: TransitionProp
       >
         <SheetTabStrip activeTabIdx={2} />
       </div>
-
-      {/* Timer — starts in corner, flies to center, pulses, falls. */}
-      <FlyingTimer phase={timerPhase} />
-    </div>
-  );
-}
-
-function FlyingTimer({
-  phase,
-}: {
-  phase: "corner" | "center" | "falling" | "gone";
-}) {
-  const base: React.CSSProperties = {
-    position: "absolute",
-    padding: "8px 14px",
-    background: "rgba(26,28,28,0.9)",
-    color: "#fff",
-    fontFamily: FONTS.mono,
-    fontWeight: 700,
-    letterSpacing: "0.04em",
-    borderRadius: 6,
-    boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
-  };
-
-  if (phase === "gone") return null;
-
-  if (phase === "corner") {
-    return <div style={{ ...base, bottom: 56, right: 28, fontSize: 14 }}>13:00</div>;
-  }
-
-  if (phase === "center") {
-    return (
-      <div
-        style={{
-          ...base,
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%) scale(1)",
-          fontSize: 140,
-          padding: "24px 44px",
-          transition: `transform ${TIMING.transition.timerPulseInMs}ms ${TIMING.transition.timerPulseEase}, font-size ${TIMING.transition.timerPulseInMs}ms ease`,
-          animation: `yonasTimerPulse ${TIMING.transition.timerPulseInMs}ms ${TIMING.transition.timerPulseEase} both`,
-        }}
-      >
-        13:00
-        <style>{`
-          @keyframes yonasTimerPulse {
-            0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
-            40%  { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1);    opacity: 1; }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  // phase === "falling"
-  return (
-    <div
-      style={{
-        ...base,
-        top: "50%",
-        left: "50%",
-        fontSize: 140,
-        padding: "24px 44px",
-        transform: `translate(-50%, 900px) scale(0.9) rotate(-3deg)`,
-        opacity: 0,
-        transition: `transform ${TIMING.transition.timerFallMs}ms ${TIMING.transition.timerFallEase}, opacity ${TIMING.transition.timerFallMs}ms ease`,
-      }}
-    >
-      13:00
     </div>
   );
 }

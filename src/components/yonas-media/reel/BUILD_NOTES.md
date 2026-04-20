@@ -1,58 +1,117 @@
 # Yonas Hero Reel — Build Notes
 
-A summary of how this reel was built against `YONAS_HERO_SEQUENCE_PROMPT.md`, what deviated, and what's still worth revisiting.
+Snapshot of how the reel is wired today. Updated after the story-strip
+redesign, range-selection calendar, and value-statement beat.
 
-## Decisions made during the build
+## Where it runs
 
-- **Animation library.** The project uses `motion` v12 (the successor package to `framer-motion`, same API). All imports use `motion/react`. `useReducedMotion` comes from there.
-- **File placement.** No `components/case-studies/` directory existed; the reel lives in `src/components/yonas-media/reel/` alongside the existing `JourneyMaps.tsx`.
-- **Orchestration pattern.** YonasReel's parent orchestrator uses a promise-based `awaitBeat()` handoff. Each beat component runs its own async sequence internally and calls `onComplete` when it's done; the orchestrator `await`s that promise before advancing phase. Cancellation is handled by a per-mount token plus a local `cancelled` flag in each beat's `useEffect` cleanup.
-- **Beat 3 subphase state.** Rather than flatten construction/demo/caption/interactive into YonasReel's phase enum, they live inside `Beat3Panel` as a single "beat3" phase with an internal `subphase`. This keeps Beat 3 self-contained and lets the Replay path restart from Beat 1 via a single `replayCount` bump at the YonasReel level.
-- **Sheet data shape.** `buildOldWaySheetData` produces 90 rows (Jan + Feb + Mar) so the fast-scroll across months reads as a real sweep rather than a 30-row shuffle. The March 1 focal row is hand-authored per artist to match the verdict.
-- **Tab-dip technique.** Implemented with a React state flag (`innerFaded`) rather than the vanilla-JS `transition: none` + reflow trick from the reference doc. The effect is similar — opacity snaps to 0 during the dip, then fades in at 800ms when the next tab mounts — but it relies on React's render cycle instead of forcing a browser reflow. If the dip ever feels soft rather than hard, swap in the reflow approach.
-- **Transition continuity.** `TransitionCollapse` renders its own simplified sheet snapshot (15 rows, focal at index 7) reusing the chrome components exported from `Beat2OldWay`. A true cross-fade with Beat 2's exact final frame would require either keeping Beat 2 mounted during the collapse or snapshotting DOM state — both add complexity for a handoff that lasts one frame.
-- **Cursor targeting.** Demo cursor positions are computed at run-time via `getBoundingClientRect()` of each target, converted into native 1440-space coordinates by dividing through the scaler's scale factor. Ref callbacks on Beat3Tool's interactive elements populate a map in Beat3Panel.
-- **interactiveMode gating.** Click handlers in Beat3Tool short-circuit the actual state change when `interactiveMode` is false, but still call `onAnyInteraction`. This preserves hover states during demo/caption and lets the first real click during the caption phase trigger the fade-out.
+- **Homepage** — `WorkCard` mounts `YonasReel` (the full narrative: email → sheets → crumble → new tool → interactive).
+- **Case study `/work/yonas-media`** — `YonasMediaHero` mounts `YonasPrototype` (Beat 3 only, interactive from first frame, no story strip).
 
-## Deviations from the spec
+Both surfaces are code-split with `next/dynamic` + `ssr: false`, with `ReelPoster` as the fallback.
 
-- **Bleed icon heights.** The prompt calls for per-icon pixel heights (warning 79px, calendar 79px, cash 86px). The current icons use a 90×90 viewBox with `width="auto"` and approximate shapes rather than the exact normalized heights. Visual intent is right; dimensions are close but not measured.
-- **Cross-fade between beats.** The prompt describes a 700ms opacity cross-fade on Beat 1 → Beat 2. Beat 1 fades out before unmounting, but Beat 2 mounts at full opacity right after — no overlapping fade. Fine for a handoff at 1440×900 but could be tightened with `AnimatePresence mode="sync"`.
-- **Sheets chrome fidelity.** Top bar, menu bar, toolbar, and column headers are visually evocative but not pixel-exact to Google Sheets. The prompt specifies "approximated, not copying"; the current chrome meets that bar without full brand mimicry.
-- **Calendar wiring during demo.** The demo always advances forward via `onAdvanceMonth` (increments `selectedMonthIdx`). The `prevMonth` cursor target exists for symmetry with interactive mode but isn't used in the scripted sequence.
+## Narrative architecture
 
-## Known issues to revisit
+The narration is **outside the screen**. A dark `StoryStrip` sits above the silver MacBook-style laptop frame; the frame wraps the 1440×900 scaled content. This keeps the copy from competing with the animation and lets the strip carry the story across phase/subphase boundaries without in-reel overlays.
 
-- **No AnimatePresence cross-fades** between phases — Beat 1/Beat 2/Transition/Beat 3 swap via unmount/mount. Visually acceptable but not as smooth as the spec implies.
-- **Bleed-icon visual weight.** Icons are drawn inline with simple `<path>` strokes rather than pulled from Lucide or a custom set. If they feel thin, swap to lucide-react's `AlertTriangle`, `Calendar`, `Banknote` at 90px with stroke-width 2.
-- **Responsive behavior for mobile.** The scaler handles width scaling cleanly. The spec asks for Beat 2 row-scale to drop from 1.9× to 1.5× below 500px and the Beat 3 table to hide the City column; neither is implemented. Current approach: the entire 1440 layout scales down proportionally, so text gets small but still readable.
-- **Accessibility keyboard path.** Screen reader `<h2 class="sr-only">` exists. Keyboard navigation through interactive mode's calendar arrows, day grid, and artist rows works via native button/button-like elements, but hasn't been end-to-end keyboard-tested.
-- **Reduced motion.** Implemented at each beat (skip typing, skip cursor, show pieces at once, etc.), but not verified in a real `prefers-reduced-motion` session.
+- **Bezel color**: `#8a8a8c` (space-gray silver), 15px thick, 20px outer radius.
+- **Strip**: fixed 64px height so the timer or Replay button appearing/disappearing can't re-flow the layout. Cross-fades the eyebrow + body text when either changes.
 
-## Performance notes
+`StoryState` shape:
+```
+{ eyebrow: string; text: string; timerMs: number | null; emphasize: boolean }
+```
 
-- The reel is code-split via `next/dynamic` with `ssr: false` at both consumption sites (homepage `WorkCard` and `/work/yonas-media` hero), so its JS doesn't land in the initial home-page bundle.
-- `IntersectionObserver` gates mount-of-interior to within ~1.5× viewport, and unmounts when further than ~2× away. Scrolling past and back re-runs the orchestrator from Beat 1.
-- `ResizeObserver` recomputes the scale on container-width changes.
-- Only `transform` and `opacity` are animated throughout; no layout-triggering properties.
-- Production build (`npm run build`) compiles cleanly with no new warnings; LCP/CLS impact not measured against a baseline yet.
+`emphasize = true` flips the eyebrow to yellow and swaps the right slot from the timer pill to the **Replay demo ↓** button. `onReplay` is owned by `YonasReel` and passed directly into `StoryStrip` — neither `Beat3Panel` nor `Beat3Tool` touch it.
+
+## Phases and subphases
+
+| Phase | Subphase | Strip eyebrow | Strip text | Timer |
+|---|---|---|---|---|
+| `beat1` | — | `Inquiry` | "Dana at Blue Heron asks Ben if Cora, Jonah, or The Marcel Trio are free on March 1, 2027." | none |
+| `beat2` | — | `The old way` | cycles per tab: scroll → verdict (6 lines total) | 00:00 → 13:00 |
+| `transition` | — | `The old way` | "No match. Time to try something else." | 13:00 (frozen) |
+| `beat3` | `construction` | `The new way` | "Same inquiry. New tool." | none |
+| `beat3` | `demo` | `The new way` | "Pick the date" → "Scan the roster" → "Who's free?" | 00:00 → 01:10 |
+| `beat3` | `caption` | `The new way` | "Dana has her answer. She books Lila Moreno." | 01:10 (frozen) |
+| `beat3` | `value` | `The new way` | "01:10 vs 13:00 — 91% faster." | 01:10 (frozen) |
+| `beat3` | `interactive` | `Your turn` (yellow) | "Click around!" | none → **Replay demo ↓** |
+
+The case-study prototype (`YonasPrototype`) mounts Beat 3 with `startInteractive`, skipping every subphase before `interactive` and running the tool silent — no story emission.
+
+## Data model (2027)
+
+All dates shifted to **January / February / March 2027**.
+
+- `MONTHS` — three month records with correct `firstDayOfWeek` offsets.
+- `BOOKINGS` — 15 artists, each with 2–3 bookings spread across the three months. **Lila Moreno has no March 1 booking on purpose** — that absence is the "open night" answer the demo lands on.
+- Every booking carries a `readiness` field (0–45). Because every gig is ~a year out, values are intentionally low across the board. The readiness bar just renders dark gray at the % width; 0 = empty track.
+- `BookingStatus` union covers `confirmed | hold | offer | serious | interest | needfill`. "Available" is derived from booking absence, not a status value.
+- Email: subject/body reference "March 1, 2027" and the Sheets filename is `Yonas_Bookings_2027`.
+
+## Date-range selection
+
+`Beat3Panel` owns `rangeStart`, `rangeEnd`, `pendingCommit` (DateKey-based). Click rules:
+
+1. If `!pendingCommit`: any click starts a fresh selection — `start = click`, `end = null`, `pendingCommit = true`.
+2. If `pendingCommit && !end`: click after start sets end; click ≤ start resets start.
+3. If `pendingCommit && end`: third click in-calendar resets to a fresh start.
+
+**Commit triggers** (all call `setPendingCommit(false)`):
+- `onMouseLeave` on the calendar card (desktop).
+- Document-level `pointerdown` outside the card (touch + any click elsewhere).
+- `onBlur` with `relatedTarget` outside the card (keyboard tab-out).
+
+Visual highlight: start and end cells get solid yellow (`secondaryContainer`); days strictly between get 40% opacity yellow. Range footer below the grid shows `Jan 12, 2027 → Jan 15, 2027` (or `Pick a date` placeholder, or `Jan 12, 2027 → pick end` while pending).
+
+## Bookings table
+
+`buildTableRows` drives rendering:
+
+- **Range mode** (both start and end set): one row per **(artist × date in range)**, grouped by artist. The artist name is shown only on the first row of each artist's group — subsequent rows leave the name cell blank for a natural indented feel.
+- **Single-date mode** (start only): one row per selected artist for that day.
+- **No selection fallback**: artist's first booking in the currently-viewed month, or "Available" if none.
+- **Empty state**: only when zero artists are selected.
+
+"Available" rows show `Available` in plain body text (no pill) and an empty readiness bar. The readiness bar has no text label under it — the bar alone carries the signal.
+
+## Demo (Beat 3)
+
+`Beat3Demo` drives the scripted auto-demo: faux cursor + pulses. The demo currently picks **Mar 1, 2027** as a single date (no range) and toggles Cora → Jonah → Marcel → Lila. All prop callbacks are mirrored into refs inside `Beat3Demo` so the orchestration effect can be a true one-shot with `[reducedMotion]` deps without stale-closure risk.
+
+## Timer math
+
+- **Old-way** (Beat 2): real elapsed mapped to 0..780000ms over the per-tab orchestration total. Freezes at 13:00 when the Marcel verdict lands.
+- **New-way** (Beat 3 demo): real elapsed mapped to 0..70000ms over `BEAT3_DEMO_REAL_MS` (≈12s). Freezes at 01:10 on demo complete, held through caption + value, cleared at interactive.
+- Both timers are state-owned by the relevant beat and pushed to the strip via `onStoryUpdate({ timerMs })` on each tick (~10 Hz).
+
+## Refs as latest-callback
+
+Every beat uses a "ref the prop, read `.current` inside async effects" pattern so orchestration effects can mount once and not restart when parents re-render. The assignment is done inside a `useEffect` (not during render) so React 19's `react-hooks/refs` rule stays happy.
 
 ## File map
 
 ```
 src/components/yonas-media/reel/
-├── tokens.ts               # Colors, fonts, TIMING constants, native dimensions
-├── data.ts                 # Months, artists, bookings, email body, sheet filler
+├── tokens.ts               # Colors, fonts, TIMING constants, native 1440×900
+├── data.ts                 # Months, artists, bookings, DateKey helpers, email body
+├── StoryStrip.tsx          # Dark narration ribbon above the screen; timer + Replay slot
 ├── ReelPoster.tsx          # SSR-safe placeholder
-├── YonasReel.tsx           # Parent: IntersectionObserver, scale-to-fit, phase orchestrator
+├── YonasReel.tsx           # Full reel: phase orchestrator, scale-to-fit, strip + framed screen
+├── YonasPrototype.tsx      # Case-study variant: Beat 3 in interactive-only mode
 ├── Beat1Email.tsx          # Gmail chrome + typing engine
-├── Beat2OldWay.tsx         # Sheets chrome + three-tab sequence + 13:00 timer
-├── TransitionCollapse.tsx  # Timer fly-to-center + row cascade
-├── Beat3Panel.tsx          # Beat 3 subphase orchestrator + refs
+├── Beat2OldWay.tsx         # Sheets chrome + 3-tab sequence + running 13:00 timer
+├── TransitionCollapse.tsx  # Crumble + fall-apart handoff (no more fly-to-center)
+├── Beat3Panel.tsx          # Beat 3 subphase orchestrator + range/day/artist state
 ├── Beat3Tool.tsx           # Atelier tool UI (nav, sidebar, metrics, table)
-├── Beat3Demo.tsx           # Auto-demo overlay with cursor + pulses
-├── ReelCaption.tsx         # Piecewise caption card
+├── Beat3Demo.tsx           # Auto-demo cursor + pulses
 ├── FauxCursor.tsx          # Demo cursor SVG
-├── index.ts                # Re-exports YonasReel + ReelPoster
+├── index.ts                # Re-exports YonasReel, YonasPrototype, ReelPoster
 └── BUILD_NOTES.md          # This file
 ```
+
+## Known follow-ups / not done
+
+- The three `<img>` lint warnings in `work-card.tsx` and the one in `JourneyMaps.tsx` predate this work and haven't been migrated to `next/image`.
+- The demo doesn't exercise the range feature — it picks a single date. Range selection is purely discovered in interactive mode after the hand-off.
+- The new-way timer tick assumes `BEAT3_DEMO_REAL_MS ≈ 12000`; if the scripted demo timings in `TIMING.demo` shift significantly, re-calibrate that constant so the timer still lands at 01:10 on demo complete.

@@ -1,7 +1,20 @@
 "use client";
 
-import React from "react";
-import { MONTHS, ARTISTS, BOOKINGS, ArtistId } from "./data";
+import React, { useEffect, useRef } from "react";
+import {
+  MONTHS,
+  ARTISTS,
+  BOOKINGS,
+  ArtistId,
+  Booking,
+  DateKey,
+  compareDateKeys,
+  dateKeysEqual,
+  isDateInRange,
+  iterateDateRange,
+  formatDateKeyLong,
+  formatDateKeyShort,
+} from "./data";
 import { COLORS, FONTS, TIMING } from "./tokens";
 
 export type BuildPiece = "nav" | "sidebar" | "head" | "metrics" | "table";
@@ -9,15 +22,16 @@ export type BuildPiece = "nav" | "sidebar" | "head" | "metrics" | "table";
 export interface Beat3ToolProps {
   placedPieces: Set<BuildPiece>;
   selectedMonthIdx: 0 | 1 | 2;
-  selectedDay: number | null;
+  rangeStart: DateKey | null;
+  rangeEnd: DateKey | null;
+  pendingCommit: boolean;
   selectedArtists: Set<ArtistId>;
   interactiveMode: boolean;
   onMonthChange: (delta: -1 | 1) => void;
   onDayClick: (day: number) => void;
+  onCommitSelection: () => void;
   onArtistToggle: (id: ArtistId) => void;
   onAnyInteraction: () => void;
-  showReplay: boolean;
-  onReplay: () => void;
   dayCellRefCallback?: (day: number, el: HTMLElement | null) => void;
   prevMonthArrowRef?: (el: HTMLElement | null) => void;
   nextMonthArrowRef?: (el: HTMLElement | null) => void;
@@ -65,9 +79,12 @@ export function Beat3Tool(props: Beat3ToolProps) {
       >
         <SidebarCalendar
           monthIdx={props.selectedMonthIdx}
-          selectedDay={props.selectedDay}
+          rangeStart={props.rangeStart}
+          rangeEnd={props.rangeEnd}
+          pendingCommit={props.pendingCommit}
           onChangeMonth={props.onMonthChange}
           onDayClick={props.onDayClick}
+          onCommitSelection={props.onCommitSelection}
           interactiveMode={props.interactiveMode}
           onAnyInteraction={props.onAnyInteraction}
           dayCellRefCallback={props.dayCellRefCallback}
@@ -93,30 +110,6 @@ export function Beat3Tool(props: Beat3ToolProps) {
           position: "relative",
         }}
       >
-        {props.showReplay && (
-          <button
-            type="button"
-            onClick={props.onReplay}
-            style={{
-              position: "absolute",
-              top: 24,
-              right: 28,
-              zIndex: 10,
-              background: "transparent",
-              border: `2px solid ${COLORS.outlineVariant}`,
-              color: COLORS.onSurfaceVariant,
-              fontFamily: FONTS.display,
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              padding: "8px 14px",
-              cursor: "pointer",
-            }}
-          >
-            ↺ Replay
-          </button>
-        )}
         <div style={pieceStyle(props.placedPieces.has("head"))}>
           <PageHead
             onNewBookingClick={props.onAnyInteraction}
@@ -129,7 +122,8 @@ export function Beat3Tool(props: Beat3ToolProps) {
         <div style={{ flex: 1, minHeight: 0, ...pieceStyle(props.placedPieces.has("table")) }}>
           <BookingsTable
             selectedMonthIdx={props.selectedMonthIdx}
-            selectedDay={props.selectedDay}
+            rangeStart={props.rangeStart}
+            rangeEnd={props.rangeEnd}
             selectedArtists={props.selectedArtists}
           />
         </div>
@@ -207,9 +201,12 @@ function ToolNav() {
 
 function SidebarCalendar({
   monthIdx,
-  selectedDay,
+  rangeStart,
+  rangeEnd,
+  pendingCommit,
   onChangeMonth,
   onDayClick,
+  onCommitSelection,
   interactiveMode,
   onAnyInteraction,
   dayCellRefCallback,
@@ -217,9 +214,12 @@ function SidebarCalendar({
   nextMonthArrowRef,
 }: {
   monthIdx: 0 | 1 | 2;
-  selectedDay: number | null;
+  rangeStart: DateKey | null;
+  rangeEnd: DateKey | null;
+  pendingCommit: boolean;
   onChangeMonth: (delta: -1 | 1) => void;
   onDayClick: (day: number) => void;
+  onCommitSelection: () => void;
   interactiveMode: boolean;
   onAnyInteraction: () => void;
   dayCellRefCallback?: (day: number, el: HTMLElement | null) => void;
@@ -235,6 +235,48 @@ function SidebarCalendar({
   const prevDisabled = monthIdx === 0;
   const nextDisabled = monthIdx === 2;
 
+  // Card wrapper ref drives the commit triggers: mouse-leave (desktop),
+  // pointerdown-outside (touch or clicks elsewhere), and blur with the
+  // next focused element outside the card (keyboard tab-out).
+  const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!pendingCommit) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const card = cardRef.current;
+      if (!card) return;
+      const target = e.target as Node | null;
+      if (target && card.contains(target)) return;
+      onCommitSelection();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [pendingCommit, onCommitSelection]);
+
+  const handleCardMouseLeave = () => {
+    if (!pendingCommit) return;
+    onCommitSelection();
+  };
+
+  const handleCardBlur = (e: React.FocusEvent) => {
+    if (!pendingCommit) return;
+    const card = cardRef.current;
+    if (!card) return;
+    const next = e.relatedTarget as Node | null;
+    if (next && card.contains(next)) return;
+    onCommitSelection();
+  };
+
+  // Compute the highlight state for a given day cell in the current month.
+  const dayHighlight = (
+    day: number,
+  ): "none" | "endpoint" | "intermediate" => {
+    const key: DateKey = { monthIdx, day };
+    if (dateKeysEqual(rangeStart, key) || dateKeysEqual(rangeEnd, key)) return "endpoint";
+    if (rangeStart && rangeEnd && isDateInRange(key, rangeStart, rangeEnd)) return "intermediate";
+    return "none";
+  };
+
   return (
     <div style={{ marginBottom: 24 }}>
       <div
@@ -243,6 +285,7 @@ function SidebarCalendar({
           alignItems: "center",
           justifyContent: "space-between",
           marginBottom: 10,
+          paddingLeft: 18,
         }}
       >
         <span
@@ -259,6 +302,9 @@ function SidebarCalendar({
         </span>
       </div>
       <div
+        ref={cardRef}
+        onMouseLeave={handleCardMouseLeave}
+        onBlur={handleCardBlur}
         style={{
           background: COLORS.surfaceLowest,
           padding: 14,
@@ -338,12 +384,18 @@ function SidebarCalendar({
           }}
         >
           {cells.map((day, i) => {
-            const isSelected = day !== null && selectedDay === day && monthIdx === 2;
+            const hi = day !== null ? dayHighlight(day) : "none";
+            const bg =
+              hi === "endpoint"
+                ? COLORS.secondaryContainer
+                : hi === "intermediate"
+                  ? "rgba(252, 212, 0, 0.4)"
+                  : "transparent";
             return (
               <button
                 key={i}
                 ref={(el) => {
-                  if (day !== null && monthIdx === 2) dayCellRefCallback?.(day, el);
+                  if (day !== null) dayCellRefCallback?.(day, el);
                 }}
                 type="button"
                 disabled={day === null}
@@ -355,7 +407,7 @@ function SidebarCalendar({
                 style={{
                   aspectRatio: "1 / 1",
                   border: "none",
-                  background: isSelected ? COLORS.secondaryContainer : "transparent",
+                  background: bg,
                   color: day === null ? "transparent" : COLORS.onSurface,
                   fontFamily: FONTS.body,
                   fontSize: 11,
@@ -369,7 +421,79 @@ function SidebarCalendar({
             );
           })}
         </div>
+        <RangeFooter
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          pendingCommit={pendingCommit}
+        />
       </div>
+    </div>
+  );
+}
+
+function RangeFooter({
+  rangeStart,
+  rangeEnd,
+  pendingCommit,
+}: {
+  rangeStart: DateKey | null;
+  rangeEnd: DateKey | null;
+  pendingCommit: boolean;
+}) {
+  const baseStyle: React.CSSProperties = {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTop: `1px solid rgba(208, 198, 171, 0.35)`,
+    fontFamily: FONTS.display,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.04em",
+    color: COLORS.onSurface,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 22,
+  };
+
+  if (!rangeStart) {
+    return (
+      <div style={{ ...baseStyle, color: COLORS.onSurfaceVariant, fontWeight: 500 }}>
+        Pick a date
+      </div>
+    );
+  }
+
+  if (rangeStart && !rangeEnd) {
+    return (
+      <div style={baseStyle}>
+        <span>{formatDateKeyLong(rangeStart)}</span>
+        <span style={{ color: COLORS.onSurfaceVariant }} aria-hidden>
+          →
+        </span>
+        {pendingCommit && (
+          <span
+            style={{
+              color: COLORS.onSurfaceVariant,
+              fontWeight: 500,
+              fontSize: 10,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            pick end
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={baseStyle}>
+      <span>{formatDateKeyLong(rangeStart!)}</span>
+      <span style={{ color: COLORS.onSurfaceVariant }} aria-hidden>
+        →
+      </span>
+      <span>{formatDateKeyLong(rangeEnd!)}</span>
     </div>
   );
 }
@@ -399,6 +523,7 @@ function SidebarRoster({
           textTransform: "uppercase",
           color: COLORS.onSurfaceVariant,
           marginBottom: 10,
+          paddingLeft: 16,
         }}
       >
         Roster
@@ -742,21 +867,95 @@ function CashIcon() {
   );
 }
 
+// Resolve a booking for a specific date, or null if none on that date.
+function bookingOn(artist: ArtistId, d: DateKey): Booking | null {
+  return BOOKINGS[artist].find((b) => b.monthIdx === d.monthIdx && b.day === d.day) ?? null;
+}
+
+// Fallback when no date is selected: surface the artist's first booking
+// in the currently-viewed month so the table isn't empty.
+function firstBookingInMonth(artist: ArtistId, monthIdx: 0 | 1 | 2): Booking | null {
+  return BOOKINGS[artist].find((b) => b.monthIdx === monthIdx) ?? null;
+}
+
+interface TableRow {
+  artistId: ArtistId;
+  artistName: string;
+  showArtistName: boolean;
+  dateKey: DateKey | null;
+  booking: Booking | null;
+}
+
+function buildTableRows(
+  selectedMonthIdx: 0 | 1 | 2,
+  rangeStart: DateKey | null,
+  rangeEnd: DateKey | null,
+  selectedArtistIds: Set<ArtistId>,
+): TableRow[] {
+  const artistList = ARTISTS.filter((a) => selectedArtistIds.has(a.id as ArtistId));
+  const out: TableRow[] = [];
+
+  // Range mode: one row per (artist, date-in-range), grouped by artist.
+  if (rangeStart && rangeEnd && compareDateKeys(rangeStart, rangeEnd) !== 0) {
+    const dates = iterateDateRange(rangeStart, rangeEnd);
+    for (const artist of artistList) {
+      let first = true;
+      for (const dateKey of dates) {
+        out.push({
+          artistId: artist.id as ArtistId,
+          artistName: artist.name,
+          showArtistName: first,
+          dateKey,
+          booking: bookingOn(artist.id as ArtistId, dateKey),
+        });
+        first = false;
+      }
+    }
+    return out;
+  }
+
+  // Single-date mode (start set, no end / equal dates).
+  if (rangeStart) {
+    for (const artist of artistList) {
+      out.push({
+        artistId: artist.id as ArtistId,
+        artistName: artist.name,
+        showArtistName: true,
+        dateKey: rangeStart,
+        booking: bookingOn(artist.id as ArtistId, rangeStart),
+      });
+    }
+    return out;
+  }
+
+  // No selection: fall back to each artist's first booking in the current
+  // month so the table still has something useful.
+  for (const artist of artistList) {
+    const b = firstBookingInMonth(artist.id as ArtistId, selectedMonthIdx);
+    out.push({
+      artistId: artist.id as ArtistId,
+      artistName: artist.name,
+      showArtistName: true,
+      dateKey: b ? { monthIdx: b.monthIdx, day: b.day } : null,
+      booking: b,
+    });
+  }
+  return out;
+}
+
 function BookingsTable({
   selectedMonthIdx,
-  selectedDay,
+  rangeStart,
+  rangeEnd,
   selectedArtists,
 }: {
   selectedMonthIdx: 0 | 1 | 2;
-  selectedDay: number | null;
+  rangeStart: DateKey | null;
+  rangeEnd: DateKey | null;
   selectedArtists: Set<ArtistId>;
 }) {
-  const rows = ARTISTS.filter((a) => selectedArtists.has(a.id as ArtistId)).flatMap((a) => {
-    const b = BOOKINGS[a.id as ArtistId][0];
-    return [{ artist: a, booking: b }];
-  });
-
   const hasSelection = selectedArtists.size > 0;
+  const rows = buildTableRows(selectedMonthIdx, rangeStart, rangeEnd, selectedArtists);
 
   return (
     <div
@@ -809,14 +1008,8 @@ function BookingsTable({
 
       {hasSelection && (
         <div style={{ overflowY: "auto" }}>
-          {rows.map(({ artist, booking }) => (
-            <BookingRow
-              key={artist.id}
-              artistName={artist.name}
-              booking={booking}
-              selectedMonthIdx={selectedMonthIdx}
-              selectedDay={selectedDay}
-            />
+          {rows.map((row, i) => (
+            <BookingRow key={`${row.artistId}-${i}`} row={row} />
           ))}
         </div>
       )}
@@ -824,24 +1017,37 @@ function BookingsTable({
   );
 }
 
-function BookingRow({
-  artistName,
-  booking,
-  selectedMonthIdx,
-  selectedDay,
-}: {
-  artistName: string;
-  booking: (typeof BOOKINGS)[ArtistId][number];
-  selectedMonthIdx: 0 | 1 | 2;
-  selectedDay: number | null;
-}) {
-  const dateLabel = `${booking.monthIdx + 1}/${booking.day}/26`;
-  const daysToGig =
-    selectedDay !== null && selectedMonthIdx === booking.monthIdx
-      ? booking.day - selectedDay
-      : 30;
+function BookingRow({ row }: { row: TableRow }) {
+  const { artistName, showArtistName, dateKey, booking } = row;
 
-  const urgency = getUrgency(daysToGig, booking.remaining, booking.status);
+  // "Available" row: artist has no booking on the queried date.
+  if (!booking) {
+    const contextDate = dateKey ? formatDateKeyShort(dateKey) : "—";
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.2fr 0.7fr 1.3fr 0.8fr 0.8fr 0.8fr",
+          padding: "14px 20px",
+          alignItems: "center",
+          fontSize: 13,
+          color: COLORS.onSurface,
+          borderBottom: `1px solid rgba(208, 198, 171, 0.18)`,
+        }}
+      >
+        <span style={{ fontFamily: FONTS.display, fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+          {showArtistName ? artistName : ""}
+        </span>
+        <span style={{ color: COLORS.onSurfaceVariant }}>{contextDate}</span>
+        <span style={{ color: COLORS.onSurfaceVariant }}>—</span>
+        <span style={{ fontSize: 11, color: COLORS.onSurfaceVariant }}>—</span>
+        <span style={{ color: COLORS.onSurface }}>Available</span>
+        <ReadinessBar readiness={0} />
+      </div>
+    );
+  }
+
+  const dateLabel = formatDateKeyShort({ monthIdx: booking.monthIdx, day: booking.day });
 
   return (
     <div
@@ -856,7 +1062,7 @@ function BookingRow({
       }}
     >
       <span style={{ fontFamily: FONTS.display, fontSize: 12, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase" }}>
-        {artistName}
+        {showArtistName ? artistName : ""}
       </span>
       <span>{dateLabel}</span>
       <span>
@@ -868,7 +1074,7 @@ function BookingRow({
       </span>
       <span style={{ fontSize: 11, color: COLORS.onSurfaceVariant }}>{booking.type}</span>
       <StatusPill status={booking.status} />
-      <ReadinessBar urgency={urgency} />
+      <ReadinessBar readiness={booking.readiness} />
     </div>
   );
 }
@@ -881,7 +1087,6 @@ function StatusPill({ status }: { status: string }) {
     serious: { bg: COLORS.statusSeriousBg, fg: COLORS.statusSeriousFg, label: "Serious" },
     interest: { bg: COLORS.statusInterestBg, fg: COLORS.statusInterestFg, label: "Interest" },
     needfill: { bg: COLORS.statusNeedfillBg, fg: COLORS.statusNeedfillFg, label: "Need to fill" },
-    available: { bg: COLORS.statusAvailableBg, fg: COLORS.statusAvailableFg, label: "Open night" },
   };
   const s = map[status] ?? map.interest;
   return (
@@ -905,32 +1110,10 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function getUrgency(
-  daysToGig: number,
-  remaining: number,
-  status: string,
-): { bar: string; label: string; barWidth: number; labelText: string } {
-  if (status === "available") {
-    return { bar: COLORS.confirmed, label: COLORS.confirmed, barWidth: 100, labelText: "Open night" };
-  }
-  if (remaining === 0) {
-    return { bar: COLORS.confirmed, label: COLORS.confirmed, barWidth: 100, labelText: "Ready" };
-  }
-  let bar = COLORS.urgencyGray;
-  let label = COLORS.onSurfaceVariant;
-  if (daysToGig <= 3) {
-    bar = COLORS.urgencyRed;
-    label = COLORS.urgencyRed;
-  } else if (daysToGig <= 14) {
-    bar = COLORS.urgencyYellow;
-    label = "#854F0B";
-  }
-  return { bar, label, barWidth: Math.min(100, (remaining / 12) * 100), labelText: `${remaining} left` };
-}
-
-function ReadinessBar({ urgency }: { urgency: ReturnType<typeof getUrgency> }) {
+function ReadinessBar({ readiness }: { readiness: number }) {
+  const pct = Math.max(0, Math.min(100, readiness));
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4, width: 120 }}>
+    <div style={{ width: 120 }}>
       <div
         style={{
           height: 4,
@@ -938,20 +1121,19 @@ function ReadinessBar({ urgency }: { urgency: ReturnType<typeof getUrgency> }) {
           position: "relative",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            height: "100%",
-            width: `${urgency.barWidth}%`,
-            background: urgency.bar,
-          }}
-        />
+        {pct > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              height: "100%",
+              width: `${pct}%`,
+              background: COLORS.onSurfaceVariant,
+            }}
+          />
+        )}
       </div>
-      <span style={{ fontSize: 10, color: urgency.label, fontFamily: FONTS.display, letterSpacing: "0.04em" }}>
-        {urgency.labelText}
-      </span>
     </div>
   );
 }

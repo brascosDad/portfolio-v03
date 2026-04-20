@@ -3,37 +3,72 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Beat3Tool, BuildPiece } from "./Beat3Tool";
 import { Beat3Demo, DemoTarget } from "./Beat3Demo";
-import { ReelCaption } from "./ReelCaption";
-import { ArtistId } from "./data";
+import { StoryState } from "./StoryStrip";
+import { ArtistId, DateKey, compareDateKeys } from "./data";
 import { TIMING } from "./tokens";
 
-type Subphase = "construction" | "demo" | "caption" | "interactive";
+type Subphase = "construction" | "demo" | "caption" | "value" | "interactive";
+
+// Payoff claim lifted from the case-study outcome:
+//   booking inquiry time: 13 min → 1 min 10 sec (about 91% faster).
+// The new-way timer ticks up toward this value during the demo and
+// freezes there through the caption + value-statement beats.
+const NEW_WAY_TIMER_MS = 70 * 1000;
+// Rough real-time length of the Beat 3 demo. The timer tick maps real
+// elapsed to the displayed 1:10 so viewers see the number climb during
+// the demo rather than jumping at the end.
+const BEAT3_DEMO_REAL_MS = 12000;
+const VALUE_DWELL_MS = 2800;
 
 interface Beat3PanelProps {
   reducedMotion: boolean;
-  onReplay: () => void;
+  // Narration strip callback. When absent (e.g. interactive prototype on
+  // case-study page), the beat runs silent.
+  onStoryUpdate?: (patch: Partial<StoryState>) => void;
+  // Skip construction/demo/caption and mount directly in interactive mode.
+  startInteractive?: boolean;
 }
 
 function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
-  const [subphase, setSubphase] = useState<Subphase>("construction");
-  const [placedPieces, setPlacedPieces] = useState<Set<BuildPiece>>(new Set());
+const CAPTION_DWELL_MS = 2600;
+
+export function Beat3Panel({
+  reducedMotion,
+  onStoryUpdate,
+  startInteractive = false,
+}: Beat3PanelProps) {
+  const [subphase, setSubphase] = useState<Subphase>(
+    startInteractive ? "interactive" : "construction",
+  );
+  const [placedPieces, setPlacedPieces] = useState<Set<BuildPiece>>(
+    startInteractive ? new Set(["nav", "sidebar", "head", "metrics", "table"]) : new Set(),
+  );
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<0 | 1 | 2>(0);
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [rangeStart, setRangeStart] = useState<DateKey | null>(null);
+  const [rangeEnd, setRangeEnd] = useState<DateKey | null>(null);
+  const [pendingCommit, setPendingCommit] = useState(false);
   const [selectedArtists, setSelectedArtists] = useState<Set<ArtistId>>(new Set());
-  const [showReplay, setShowReplay] = useState(false);
-  const [captionFading, setCaptionFading] = useState(false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const prevArrowRef = useRef<HTMLElement | null>(null);
   const nextArrowRef = useRef<HTMLElement | null>(null);
   const dayCellsRef = useRef<Map<number, HTMLElement>>(new Map());
   const artistRowsRef = useRef<Map<ArtistId, HTMLElement>>(new Map());
-  const subphaseRef = useRef<Subphase>("construction");
-  subphaseRef.current = subphase;
+  const subphaseRef = useRef<Subphase>(subphase);
+  const onStoryRef = useRef(onStoryUpdate);
+  useEffect(() => {
+    subphaseRef.current = subphase;
+  }, [subphase]);
+  useEffect(() => {
+    onStoryRef.current = onStoryUpdate;
+  }, [onStoryUpdate]);
+
+  const emitStory = useCallback((patch: Partial<StoryState>) => {
+    onStoryRef.current?.(patch);
+  }, []);
 
   const handleMonthChange = useCallback((delta: -1 | 1) => {
     setSelectedMonthIdx((prev) => {
@@ -44,8 +79,38 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
 
   const handleAdvanceMonth = useCallback(() => handleMonthChange(1), [handleMonthChange]);
 
-  const handleDayClick = useCallback((day: number) => {
-    setSelectedDay(day);
+  const handleDayClick = useCallback(
+    (day: number) => {
+      const clicked: DateKey = { monthIdx: selectedMonthIdx, day };
+      if (!pendingCommit) {
+        setRangeStart(clicked);
+        setRangeEnd(null);
+        setPendingCommit(true);
+        return;
+      }
+      if (!rangeStart) {
+        setRangeStart(clicked);
+        setRangeEnd(null);
+        return;
+      }
+      if (rangeEnd) {
+        setRangeStart(clicked);
+        setRangeEnd(null);
+        return;
+      }
+      const cmp = compareDateKeys(clicked, rangeStart);
+      if (cmp > 0) {
+        setRangeEnd(clicked);
+      } else {
+        setRangeStart(clicked);
+        setRangeEnd(null);
+      }
+    },
+    [selectedMonthIdx, pendingCommit, rangeStart, rangeEnd],
+  );
+
+  const handleCommitSelection = useCallback(() => {
+    setPendingCommit((p) => (p ? false : p));
   }, []);
 
   const handleArtistToggle = useCallback((id: ArtistId) => {
@@ -59,24 +124,22 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
 
   const interactiveMode = subphase === "interactive";
 
-  // Clicks anywhere on the tool while the caption is visible dismiss it. We don't
-  // use pointer-events: none to gate the tool during caption — hover states stay
-  // alive; click handlers inside Beat3Tool call this even when interactiveMode is
-  // false (they just short-circuit the actual state change).
   const handleAnyInteraction = useCallback(() => {
-    if (subphaseRef.current === "caption" && !captionFading) {
-      setCaptionFading(true);
-      setTimeout(() => {
-        setSubphase("interactive");
-        setShowReplay(true);
-      }, TIMING.caption.fadeOutMs);
-    }
-  }, [captionFading]);
+    // No-op while not in interactive mode. Beat3Tool's internal click
+    // handlers check interactiveMode before mutating state.
+  }, []);
 
   // Construction sequence.
   useEffect(() => {
     if (subphase !== "construction") return;
     let cancelled = false;
+
+    emitStory({
+      eyebrow: "The new way",
+      text: "Same inquiry. New tool.",
+      timerMs: null,
+      emphasize: false,
+    });
 
     (async () => {
       if (reducedMotion) {
@@ -104,11 +167,102 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
     return () => {
       cancelled = true;
     };
-  }, [subphase, reducedMotion]);
+  }, [subphase, reducedMotion, emitStory]);
+
+  // New-way timer: ticks 0 → NEW_WAY_TIMER_MS during the demo, mapped to
+  // the real demo duration. Freezes (stops ticking) when the demo
+  // completes; the caption and value subphases render the final value.
+  useEffect(() => {
+    if (subphase !== "demo" || reducedMotion) return;
+    emitStory({ timerMs: 0 });
+    const start = performance.now();
+    const iv = setInterval(() => {
+      const elapsed = performance.now() - start;
+      const displayed = Math.min(
+        NEW_WAY_TIMER_MS,
+        (elapsed / BEAT3_DEMO_REAL_MS) * NEW_WAY_TIMER_MS,
+      );
+      emitStory({ timerMs: displayed });
+    }, 100);
+    return () => clearInterval(iv);
+  }, [subphase, reducedMotion, emitStory]);
+
+  // Caption: the story closes with Lila Moreno as the answer. Frozen
+  // timer stays visible so the next beat can compare it against 13:00.
+  useEffect(() => {
+    if (subphase !== "caption") return;
+    let cancelled = false;
+
+    emitStory({
+      eyebrow: "The new way",
+      text: "Dana has her answer. She books Lila Moreno.",
+      timerMs: NEW_WAY_TIMER_MS,
+      emphasize: false,
+    });
+
+    (async () => {
+      await wait(CAPTION_DWELL_MS);
+      if (cancelled) return;
+      setSubphase("value");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subphase, emitStory]);
+
+  // Value statement: the payoff. Same answer, 91% faster. Timer still
+  // shows 01:10 so the comparison lands.
+  useEffect(() => {
+    if (subphase !== "value") return;
+    let cancelled = false;
+
+    emitStory({
+      eyebrow: "The new way",
+      text: "01:10 vs 13:00 — 91% faster.",
+      timerMs: NEW_WAY_TIMER_MS,
+      emphasize: false,
+    });
+
+    (async () => {
+      await wait(VALUE_DWELL_MS);
+      if (cancelled) return;
+      // Clear any pending-commit state from the demo's programmatic day
+      // click so the user's first interactive click starts a fresh range.
+      setPendingCommit(false);
+      setSubphase("interactive");
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [subphase, emitStory]);
+
+  // When interactive mode activates, the narration strip hands over to the
+  // user with a playful CTA. The Replay button lives in the strip itself
+  // (owned by YonasReel) so nothing here renders it.
+  useEffect(() => {
+    if (subphase !== "interactive") return;
+    if (!startInteractive) {
+      emitStory({
+        eyebrow: "Your turn",
+        text: "Click around!",
+        timerMs: null,
+        emphasize: true,
+      });
+    }
+  }, [subphase, startInteractive, emitStory]);
 
   const handleDemoComplete = useCallback(() => {
     setSubphase("caption");
   }, []);
+
+  const handleAnnotationChange = useCallback(
+    (text: string) => {
+      emitStory({ text });
+    },
+    [emitStory],
+  );
 
   const getTargetRect = useCallback((target: DemoTarget): DOMRect | null => {
     if (target.type === "prevMonth") return prevArrowRef.current?.getBoundingClientRect() ?? null;
@@ -128,15 +282,16 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
       <Beat3Tool
         placedPieces={placedPieces}
         selectedMonthIdx={selectedMonthIdx}
-        selectedDay={selectedDay}
+        rangeStart={rangeStart}
+        rangeEnd={rangeEnd}
+        pendingCommit={pendingCommit}
         selectedArtists={selectedArtists}
         interactiveMode={interactiveMode}
         onMonthChange={handleMonthChange}
         onDayClick={handleDayClick}
+        onCommitSelection={handleCommitSelection}
         onArtistToggle={handleArtistToggle}
         onAnyInteraction={handleAnyInteraction}
-        showReplay={showReplay}
-        onReplay={onReplay}
         dayCellRefCallback={(day, el) => {
           if (el) dayCellsRef.current.set(day, el);
           else dayCellsRef.current.delete(day);
@@ -161,15 +316,8 @@ export function Beat3Panel({ reducedMotion, onReplay }: Beat3PanelProps) {
           onAdvanceMonth={handleAdvanceMonth}
           onSelectDay={handleDayClick}
           onToggleArtist={handleArtistToggle}
+          onAnnotationChange={handleAnnotationChange}
           onComplete={handleDemoComplete}
-        />
-      )}
-
-      {subphase === "caption" && (
-        <ReelCaption
-          reducedMotion={reducedMotion}
-          fading={captionFading}
-          onDismiss={handleAnyInteraction}
         />
       )}
     </div>

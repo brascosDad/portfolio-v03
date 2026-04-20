@@ -2,9 +2,9 @@
 // Months, artists, bookings, Beat 1 email body, Beat 2 procedural sheet filler.
 
 export const MONTHS = [
-  { name: "January 2026", firstDayOfWeek: 4, daysInMonth: 31 },
-  { name: "February 2026", firstDayOfWeek: 0, daysInMonth: 28 },
-  { name: "March 2026", firstDayOfWeek: 0, daysInMonth: 31 },
+  { name: "January 2027", firstDayOfWeek: 5, daysInMonth: 31 },
+  { name: "February 2027", firstDayOfWeek: 1, daysInMonth: 28 },
+  { name: "March 2027", firstDayOfWeek: 1, daysInMonth: 31 },
 ] as const;
 
 export const ARTISTS = [
@@ -33,39 +33,105 @@ export type BookingStatus =
   | "offer"
   | "serious"
   | "interest"
-  | "needfill"
-  | "available";
+  | "needfill";
 
 export interface Booking {
-  monthIdx: number;
+  monthIdx: 0 | 1 | 2;
   day: number;
   venue: string;
   city: string;
   type: string;
   status: BookingStatus;
-  remaining: number;
+  // Readiness toward the gig, 0–100. Everyone is ~a year out, so values
+  // are intentionally low across the board. Render as a dark-gray bar
+  // with no text label.
+  readiness: number;
 }
 
+// Each artist has a handful of bookings spread across Jan/Feb/Mar 2027 so
+// the interactive prototype has something to react to on arbitrary dates.
+// Lila Moreno intentionally has no booking on March 1 — that's the "open
+// night" answer at the end of the reel.
 export const BOOKINGS: Record<ArtistId, Booking[]> = {
-  cora: [{ monthIdx: 2, day: 1, venue: "Town Hall", city: "New York NY", type: "four-piece", status: "confirmed", remaining: 2 }],
-  jonah: [{ monthIdx: 2, day: 1, venue: "Orpheum", city: "Memphis TN", type: "three-piece", status: "confirmed", remaining: 1 }],
-  marcel: [{ monthIdx: 2, day: 1, venue: "Fox Theatre", city: "Atlanta GA", type: "four-piece", status: "hold", remaining: 6 }],
-  lila: [{ monthIdx: 2, day: 1, venue: "—", city: "—", type: "singer songwriter", status: "available", remaining: 0 }],
-  river: [{ monthIdx: 2, day: 5, venue: "Silverline Arena", city: "Chicago IL", type: "three-piece", status: "confirmed", remaining: 3 }],
-  juno: [{ monthIdx: 2, day: 2, venue: "Warehouse 7", city: "Detroit MI", type: "singer songwriter", status: "serious", remaining: 11 }],
-  sable: [{ monthIdx: 2, day: 8, venue: "The Blue Note", city: "Los Angeles CA", type: "four-piece", status: "confirmed", remaining: 2 }],
-  otis: [{ monthIdx: 2, day: 10, venue: "Paramount Theater", city: "Seattle WA", type: "festival", status: "confirmed", remaining: 4 }],
-  marigold: [{ monthIdx: 2, day: 12, venue: "The Foundry", city: "Philadelphia PA", type: "three-piece", status: "serious", remaining: 7 }],
-  theo: [{ monthIdx: 2, day: 14, venue: "Zion Dome", city: "Denver CO", type: "four-piece", status: "confirmed", remaining: 2 }],
-  nina: [{ monthIdx: 2, day: 16, venue: "The Basement", city: "Nashville TN", type: "singer songwriter", status: "interest", remaining: 9 }],
-  finn: [{ monthIdx: 2, day: 18, venue: "Mercury Lounge", city: "New York NY", type: "three-piece", status: "confirmed", remaining: 1 }],
-  ivy: [{ monthIdx: 2, day: 20, venue: "Neumos", city: "Seattle WA", type: "singer songwriter", status: "offer", remaining: 5 }],
-  hollis: [{ monthIdx: 2, day: 22, venue: "Turner Hall", city: "Milwaukee WI", type: "four-piece", status: "needfill", remaining: 10 }],
-  dune: [{ monthIdx: 2, day: 28, venue: "Thalia Hall", city: "Chicago IL", type: "festival", status: "confirmed", remaining: 2 }],
+  cora: [
+    { monthIdx: 0, day: 22, venue: "Lincoln Hall", city: "Chicago IL", type: "four-piece", status: "confirmed", readiness: 35 },
+    { monthIdx: 1, day: 14, venue: "9:30 Club", city: "Washington DC", type: "four-piece", status: "hold", readiness: 10 },
+    { monthIdx: 2, day: 1, venue: "Town Hall", city: "New York NY", type: "four-piece", status: "confirmed", readiness: 25 },
+  ],
+  jonah: [
+    { monthIdx: 0, day: 10, venue: "The Basement", city: "Nashville TN", type: "three-piece", status: "confirmed", readiness: 30 },
+    { monthIdx: 1, day: 20, venue: "3rd & Lindsley", city: "Nashville TN", type: "three-piece", status: "hold", readiness: 8 },
+    { monthIdx: 2, day: 1, venue: "Orpheum", city: "Memphis TN", type: "three-piece", status: "confirmed", readiness: 20 },
+  ],
+  marcel: [
+    { monthIdx: 0, day: 18, venue: "Ogden Theatre", city: "Denver CO", type: "four-piece", status: "offer", readiness: 12 },
+    { monthIdx: 1, day: 5, venue: "Variety Playhouse", city: "Atlanta GA", type: "four-piece", status: "confirmed", readiness: 28 },
+    { monthIdx: 2, day: 1, venue: "Fox Theatre", city: "Atlanta GA", type: "four-piece", status: "hold", readiness: 5 },
+  ],
+  lila: [
+    // Intentionally no March 1 — Lila is the "open night" answer at the end.
+    { monthIdx: 0, day: 8, venue: "Cafe du Nord", city: "San Francisco CA", type: "singer songwriter", status: "offer", readiness: 15 },
+    { monthIdx: 1, day: 20, venue: "Bootleg Theater", city: "Los Angeles CA", type: "singer songwriter", status: "confirmed", readiness: 30 },
+  ],
+  river: [
+    { monthIdx: 0, day: 15, venue: "Metro", city: "Chicago IL", type: "three-piece", status: "confirmed", readiness: 32 },
+    { monthIdx: 1, day: 24, venue: "Riviera Theatre", city: "Chicago IL", type: "three-piece", status: "hold", readiness: 7 },
+    { monthIdx: 2, day: 5, venue: "Silverline Arena", city: "Chicago IL", type: "three-piece", status: "confirmed", readiness: 40 },
+  ],
+  juno: [
+    { monthIdx: 0, day: 12, venue: "Warehouse 7", city: "Detroit MI", type: "singer songwriter", status: "confirmed", readiness: 22 },
+    { monthIdx: 1, day: 28, venue: "Magic Bag", city: "Detroit MI", type: "singer songwriter", status: "hold", readiness: 6 },
+    { monthIdx: 2, day: 2, venue: "El Club", city: "Detroit MI", type: "singer songwriter", status: "serious", readiness: 8 },
+  ],
+  sable: [
+    { monthIdx: 0, day: 25, venue: "Hollywood Forever", city: "Los Angeles CA", type: "four-piece", status: "offer", readiness: 14 },
+    { monthIdx: 1, day: 2, venue: "Teragram Ballroom", city: "Los Angeles CA", type: "four-piece", status: "confirmed", readiness: 38 },
+    { monthIdx: 2, day: 8, venue: "The Blue Note", city: "Los Angeles CA", type: "four-piece", status: "confirmed", readiness: 25 },
+  ],
+  otis: [
+    { monthIdx: 0, day: 28, venue: "Showbox", city: "Seattle WA", type: "three-piece", status: "confirmed", readiness: 30 },
+    { monthIdx: 1, day: 18, venue: "Neptune Theatre", city: "Seattle WA", type: "three-piece", status: "hold", readiness: 9 },
+    { monthIdx: 2, day: 10, venue: "Paramount Theater", city: "Seattle WA", type: "festival", status: "confirmed", readiness: 42 },
+  ],
+  marigold: [
+    { monthIdx: 0, day: 5, venue: "Union Transfer", city: "Philadelphia PA", type: "three-piece", status: "offer", readiness: 10 },
+    { monthIdx: 1, day: 10, venue: "Johnny Brenda's", city: "Philadelphia PA", type: "three-piece", status: "confirmed", readiness: 27 },
+    { monthIdx: 2, day: 12, venue: "The Foundry", city: "Philadelphia PA", type: "three-piece", status: "serious", readiness: 6 },
+  ],
+  theo: [
+    { monthIdx: 0, day: 11, venue: "Gothic Theatre", city: "Denver CO", type: "four-piece", status: "confirmed", readiness: 24 },
+    { monthIdx: 1, day: 22, venue: "Bluebird Theater", city: "Denver CO", type: "four-piece", status: "hold", readiness: 8 },
+    { monthIdx: 2, day: 14, venue: "Zion Dome", city: "Denver CO", type: "four-piece", status: "confirmed", readiness: 36 },
+  ],
+  nina: [
+    { monthIdx: 0, day: 7, venue: "Exit/In", city: "Nashville TN", type: "singer songwriter", status: "confirmed", readiness: 22 },
+    { monthIdx: 1, day: 13, venue: "Mercy Lounge", city: "Nashville TN", type: "singer songwriter", status: "offer", readiness: 12 },
+    { monthIdx: 2, day: 16, venue: "The Basement", city: "Nashville TN", type: "singer songwriter", status: "interest", readiness: 4 },
+  ],
+  finn: [
+    { monthIdx: 0, day: 20, venue: "Music Hall of Williamsburg", city: "New York NY", type: "three-piece", status: "hold", readiness: 7 },
+    { monthIdx: 1, day: 7, venue: "Bowery Ballroom", city: "New York NY", type: "three-piece", status: "confirmed", readiness: 33 },
+    { monthIdx: 2, day: 18, venue: "Mercury Lounge", city: "New York NY", type: "three-piece", status: "confirmed", readiness: 28 },
+  ],
+  ivy: [
+    { monthIdx: 0, day: 9, venue: "Crocodile", city: "Seattle WA", type: "singer songwriter", status: "hold", readiness: 5 },
+    { monthIdx: 1, day: 16, venue: "Tractor Tavern", city: "Seattle WA", type: "singer songwriter", status: "confirmed", readiness: 26 },
+    { monthIdx: 2, day: 20, venue: "Neumos", city: "Seattle WA", type: "singer songwriter", status: "offer", readiness: 13 },
+  ],
+  hollis: [
+    { monthIdx: 0, day: 26, venue: "Cactus Club", city: "Milwaukee WI", type: "four-piece", status: "confirmed", readiness: 30 },
+    { monthIdx: 1, day: 4, venue: "The Rave", city: "Milwaukee WI", type: "four-piece", status: "hold", readiness: 6 },
+    { monthIdx: 2, day: 22, venue: "Turner Hall", city: "Milwaukee WI", type: "four-piece", status: "needfill", readiness: 3 },
+  ],
+  dune: [
+    { monthIdx: 0, day: 14, venue: "Subterranean", city: "Chicago IL", type: "festival", status: "offer", readiness: 11 },
+    { monthIdx: 1, day: 12, venue: "House of Blues", city: "Chicago IL", type: "festival", status: "confirmed", readiness: 38 },
+    { monthIdx: 2, day: 28, venue: "Thalia Hall", city: "Chicago IL", type: "festival", status: "confirmed", readiness: 45 },
+  ],
 };
 
 // Beat 2 sheet rows — procedural filler per artist seed.
-// Generates rows spanning January, February, and March 2026 so the fast-scroll
+// Generates rows spanning January, February, and March 2027 so the fast-scroll
 // reads as sweeping across months to land on March 1.
 export interface SheetRow {
   monthIdx: number;
@@ -97,7 +163,7 @@ export function buildOldWaySheetData(
         rows.push({
           monthIdx: m.idx,
           day: d,
-          dateLabel: `${m.idx + 1}/${d}/26`,
+          dateLabel: `${m.idx + 1}/${d}/27`,
           status: focal.verdict === "confirmed" ? "CONFIRMED" : "HOLD",
           venue: focal.venue,
           isFocal: true,
@@ -119,7 +185,7 @@ export function buildOldWaySheetData(
       rows.push({
         monthIdx: m.idx,
         day: d,
-        dateLabel: `${m.idx + 1}/${d}/26`,
+        dateLabel: `${m.idx + 1}/${d}/27`,
         status,
         venue,
       });
@@ -145,19 +211,66 @@ export const BEAT2_TABS = [
   { id: "marcel", name: "The Marcel Trio", seed: 5 },
 ] as const;
 
+// Calendar date helpers. Beat 3 supports a single date OR a date range.
+// A DateKey identifies a day in the three-month window by month index + day.
+export interface DateKey {
+  monthIdx: 0 | 1 | 2;
+  day: number;
+}
+
+export function compareDateKeys(a: DateKey, b: DateKey): number {
+  if (a.monthIdx !== b.monthIdx) return a.monthIdx - b.monthIdx;
+  return a.day - b.day;
+}
+
+export function dateKeysEqual(a: DateKey | null, b: DateKey | null): boolean {
+  if (!a || !b) return false;
+  return a.monthIdx === b.monthIdx && a.day === b.day;
+}
+
+export function isDateInRange(d: DateKey, start: DateKey, end: DateKey): boolean {
+  return compareDateKeys(d, start) >= 0 && compareDateKeys(d, end) <= 0;
+}
+
+export function iterateDateRange(start: DateKey, end: DateKey): DateKey[] {
+  const days = [31, 28, 31];
+  const out: DateKey[] = [];
+  let cur: DateKey = { monthIdx: start.monthIdx, day: start.day };
+  while (compareDateKeys(cur, end) <= 0) {
+    out.push({ monthIdx: cur.monthIdx, day: cur.day });
+    if (cur.day < days[cur.monthIdx]) {
+      cur = { monthIdx: cur.monthIdx, day: cur.day + 1 };
+    } else if (cur.monthIdx < 2) {
+      cur = { monthIdx: (cur.monthIdx + 1) as 0 | 1 | 2, day: 1 };
+    } else {
+      break;
+    }
+  }
+  return out;
+}
+
+const MONTH_SHORT = ["Jan", "Feb", "Mar"];
+export function formatDateKeyLong(d: DateKey): string {
+  return `${MONTH_SHORT[d.monthIdx]} ${d.day}, 2027`;
+}
+
+export function formatDateKeyShort(d: DateKey): string {
+  return `${d.monthIdx + 1}/${d.day}/27`;
+}
+
 export const BEAT1_EMAIL = {
   senderName: "Dana Reyes",
   senderEmail: "dana@blueheronvenue.com",
   senderInitials: "DR",
   senderAvatarColor: "#8e44ad",
   to: "ben@yonasmedia.com",
-  subject: "Booking inquiry — March 1",
-  timestamp: "Mon, Feb 16, 2:47 PM",
+  subject: "Booking inquiry — March 1, 2027",
+  timestamp: "Mon, Feb 15, 2:47 PM",
   lines: [
     { text: "Hi Ben,", pauseAfter: 180 },
     { text: "", pauseAfter: 0 },
     {
-      text: "Hope you're doing well! We've got an open slot at The Blue Heron on March 1 and would love to fill it with one of your artists. Is Cora Lane, Jonah Ellery, or The Marcel Trio available that night? Happy to send the full offer once we know who's free.",
+      text: "Hope you're doing well! We've got an open slot at The Blue Heron on March 1, 2027 and would love to fill it with one of your artists. Is Cora Lane, Jonah Ellery, or The Marcel Trio available that night? Happy to send the full offer once we know who's free.",
       pauseAfter: 180,
     },
     { text: "", pauseAfter: 0 },

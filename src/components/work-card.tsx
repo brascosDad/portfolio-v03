@@ -86,8 +86,10 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
     // so it gets a plain full-width wrapper instead of the phone-frame scaler used for the
     // Home Depot prototypes.
     if (media.componentId === "yonas-reel") {
+      // YonasReel renders its own narration strip and silver laptop frame,
+      // so no additional wrapper is needed here.
       return (
-        <div className="w-full rounded-lg overflow-hidden">
+        <div className="w-full">
           <YonasReel />
         </div>
       );
