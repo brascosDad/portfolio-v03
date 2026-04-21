@@ -1129,7 +1129,6 @@ export function ProfileBuilderPrototype() {
           width: 390,
           height: 780,
           borderRadius: 40,
-          border: "1px solid #949494",
           backgroundColor: "#fff",
           overflow: "hidden",
           boxShadow: "0 4px 24px rgba(0,0,0,0.08)",

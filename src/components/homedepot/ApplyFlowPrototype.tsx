@@ -668,7 +668,7 @@ export function ApplyFlowPrototype() {
 
       {/* phone frame */}
       <div
-        className="relative w-[390px] h-[780px] rounded-[40px] border border-[#949494] bg-white overflow-hidden flex flex-col"
+        className="relative w-[390px] h-[780px] rounded-[40px] bg-white overflow-hidden flex flex-col"
         style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.08)" }}
       >
         <StatusBar />

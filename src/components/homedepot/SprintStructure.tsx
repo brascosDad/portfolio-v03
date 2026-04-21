@@ -257,8 +257,10 @@ export function SprintStructure() {
       </div>
 
       {/* Footer line */}
-      <div className="text-[11px] text-[#aaa] mt-[1.25rem] pt-[1rem] border-t border-[#ebebeb] leading-[1.6]">
-        The sprint didn&apos;t produce designs. It produced the right questions — three areas where the evidence was strong enough to prototype and test.
+      <div className="mt-[1.25rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
+        <p className="font-sans text-[12px] md:text-[14px] lg:text-[16px] text-text-primary leading-[1.5]">
+          The sprint didn&apos;t produce designs. It produced the right questions — three areas where the evidence was strong enough to prototype and test.
+        </p>
       </div>
     </div>
   );

@@ -40,7 +40,7 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-bg-primary pt-[20px] md:pt-[160px] lg:pt-[240px] pb-[140px] md:pb-[100px] lg:pb-[100px]"
+      className="w-full bg-bg-primary pt-100 md:pt-[160px] lg:pt-[240px] pb-[140px] md:pb-80 lg:pb-[100px]"
     >
       <div className="relative overflow-visible h-[310px] md:h-[220px] lg:h-[270px] max-w-[1440px] mx-auto">
 

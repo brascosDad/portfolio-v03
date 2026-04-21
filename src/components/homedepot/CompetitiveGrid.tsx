@@ -273,8 +273,8 @@ export function CompetitiveGrid() {
       </div>
 
       {/* Gap callout */}
-      <div className="mt-[1rem] border-l-2 border-[#d97706] py-[10px] px-[14px] bg-[#fffbeb] rounded-r-[6px]">
-        <p className="text-[12px] text-[#b45309] leading-[1.5]">
+      <div className="mt-[1rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
+        <p className="font-sans text-[12px] md:text-[14px] lg:text-[16px] text-text-primary leading-[1.5]">
           <strong className="font-bold">Two gaps, no one addressing them.</strong>{" "}
           Across every platform reviewed, AI assistance for profile building and validation of job posting quality were entirely absent. These became the clearest opportunities coming out of the sprint.
         </p>
