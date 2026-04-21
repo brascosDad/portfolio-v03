@@ -50,8 +50,8 @@ export const caseStudies: CaseStudy[] = [
     ctaText: "This project is under active development at The Home Depot. A full walkthrough \u2014 including the sprint findings, prototype approaches, and usability results \u2014 is available on request.",
     ctaButtonLabel: "Let\u2019s talk",
     ctaButtonHref: "mailto:ernestleeson@gmail.com",
-    nextSlug: "akqaqt",
-    nextTitle: "AKQA",
+    nextSlug: "work/yonas-media",
+    nextTitle: "Yonas Media",
   },
   {
     slug: "work/yonas-media",
