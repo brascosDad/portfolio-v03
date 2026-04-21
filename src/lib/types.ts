@@ -23,6 +23,7 @@ export interface CaseStudySection {
   quotes?: string[];
   portraitSrc?: string;
   images?: { src: string; label: string }[];
+  imageCarousel?: { src: string; alt: string }[];
   customComponent?: string;
   subtitle?: string;
   bodyExtra?: string;

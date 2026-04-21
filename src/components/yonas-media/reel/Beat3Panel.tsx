@@ -47,10 +47,16 @@ export function Beat3Panel({
     startInteractive ? new Set(["nav", "sidebar", "head", "metrics", "table"]) : new Set(),
   );
   const [selectedMonthIdx, setSelectedMonthIdx] = useState<0 | 1 | 2>(0);
-  const [rangeStart, setRangeStart] = useState<DateKey | null>(null);
-  const [rangeEnd, setRangeEnd] = useState<DateKey | null>(null);
+  const [rangeStart, setRangeStart] = useState<DateKey | null>(
+    startInteractive ? { monthIdx: 0, day: 10 } : null,
+  );
+  const [rangeEnd, setRangeEnd] = useState<DateKey | null>(
+    startInteractive ? { monthIdx: 0, day: 25 } : null,
+  );
   const [pendingCommit, setPendingCommit] = useState(false);
-  const [selectedArtists, setSelectedArtists] = useState<Set<ArtistId>>(new Set());
+  const [selectedArtists, setSelectedArtists] = useState<Set<ArtistId>>(
+    startInteractive ? new Set<ArtistId>(["cora", "jonah", "marcel"]) : new Set(),
+  );
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const prevArrowRef = useRef<HTMLElement | null>(null);

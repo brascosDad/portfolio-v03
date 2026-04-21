@@ -1,11 +1,18 @@
 "use client";
 
 import { useRef, useCallback, useState } from "react";
+import dynamic from "next/dynamic";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { CaseStudyMeta } from "./case-study-meta";
 import { CaseStudyBlock } from "./case-study-block";
 import { CaseStudyCta } from "./case-study-cta";
 import { Lightbox } from "./lightbox";
+import { ReelPoster } from "./yonas-media/reel/ReelPoster";
+
+const YonasPrototype = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasPrototype),
+  { ssr: false, loading: () => <ReelPoster /> },
+);
 
 interface CaseStudyPageProps {
   study: CaseStudy;
@@ -21,6 +28,31 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
       }, media.loopDelay);
     }
   }, [media.loopDelay]);
+
+  if (media.type === "component" && media.componentId === "yonas-reel") {
+    return (
+      <div>
+        <div
+          className="overflow-hidden"
+          style={{
+            border: "15px solid #8a8a8c",
+            background: "#8a8a8c",
+            borderRadius: 20,
+          }}
+        >
+          <YonasPrototype />
+        </div>
+        {label && (
+          <div className="mt-[1rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
+            <p className="font-sans text-[12px] md:text-[14px] lg:text-[16px] text-text-primary leading-[1.5]">
+              <strong className="font-bold">Live prototype.</strong>{" "}
+              {label}
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (media.type === "video" && media.src) {
     const hasTransform = media.scale || media.translateY;
@@ -94,9 +126,13 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
             <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
               The Brief
             </h2>
-            <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-              {study.brief}
-            </p>
+            <div className="mt-[10px] space-y-[16px]">
+              {study.brief.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         )}
 
@@ -163,7 +199,11 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
           <div className="mt-[60px]">
             <MediaBlock
               media={study.bentoMedia[0]}
-              label="One Tool, One Flow — interaction demo"
+              label={
+                study.bentoMedia[0].type === "component" && study.bentoMedia[0].componentId === "yonas-reel"
+                  ? "Pan the calendar, toggle artists, click any date to explore."
+                  : "One Tool, One Flow — interaction demo"
+              }
             />
           </div>
         )}

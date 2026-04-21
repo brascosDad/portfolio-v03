@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { CaseStudySection } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { Lightbox } from "./lightbox";
+import { AutoCarousel } from "./auto-carousel";
 
 const CompetitiveGrid = dynamic(
   () => import("./homedepot/CompetitiveGrid").then((m) => m.CompetitiveGrid),
@@ -18,12 +19,16 @@ const PrototypesShowcase = dynamic(
 const JourneyMaps = dynamic(
   () => import("./yonas-media/JourneyMaps").then((m) => m.JourneyMaps),
 );
+const YonasMvpTable = dynamic(
+  () => import("./yonas-media/YonasMvpTable").then((m) => m.YonasMvpTable),
+);
 
 const customComponentMap: Record<string, React.ComponentType> = {
   "competitive-grid": CompetitiveGrid,
   "sprint-structure": SprintStructure,
   "prototypes": PrototypesShowcase,
   "journey-maps": JourneyMaps,
+  "yonas-mvp-table": YonasMvpTable,
 };
 
 interface CaseStudyBlockProps {
@@ -146,6 +151,11 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
           </video>
         </div>
       );
+    }
+
+    // Auto-playing crossfade carousel
+    if (section.imageCarousel && section.imageCarousel.length > 0) {
+      return <AutoCarousel images={section.imageCarousel} aspectClass="aspect-[4/5]" />;
     }
 
     // Multiple images grid

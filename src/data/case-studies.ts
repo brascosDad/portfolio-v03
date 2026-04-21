@@ -55,7 +55,7 @@ export const caseStudies: CaseStudy[] = [
   },
   {
     slug: "work/yonas-media",
-    title: "Yonas Media \u2014 Yonas Media Tool",
+    title: "Yonas Media \u2014 Collapsing a 13-Minute Workflow for a Music Booking Team",
     subtitle: "A custom booking system replacing 15 spreadsheets and two disconnected venue databases for a music management company\u2019s full team.",
     eyebrow: "Yonas Media \u00b7 Internal Tool \u00b7 2026",
     meta: {
@@ -64,7 +64,7 @@ export const caseStudies: CaseStudy[] = [
       projectType: "Internal Tool",
       year: "2026",
     },
-    brief: "I wasn\u2019t handed this project. I went looking for it. The goal was to find a real company experiencing a real problem \u2014 not a hypothetical, not a redesign exercise \u2014 and solve it end-to-end. That meant defining what to build, designing it, and building it. Yonas Media was that company. Yonas Media manages roughly 15 active touring artists. Their booking operation ran across a patchwork of disconnected tools: 15 individual Google Sheets (one per artist), a Streak CRM holding 9,000+ venue records that wasn\u2019t connected to the booking calendar, a separate Polestar venue directory, and verbal and email handoffs between three core team members. The first thing I needed to understand wasn\u2019t what to build \u2014 it was the shape of the business. Where was it today? Where was Ben trying to take it? What did scale look like for a company like this? That informed everything downstream: the backend architecture, the data model, the role system. Building something that solves today\u2019s problem while boxing you into a corner for tomorrow isn\u2019t solving the problem. From those early conversations, a clear brief emerged: replace the stack with one tool. A single live view of artist availability, booking status, and venue data \u2014 built for the team\u2019s actual workflow, not a generic CRM.",
+    brief: "I wasn\u2019t handed this project \u2014 I went looking for it. The goal was to find a real company with a real problem and solve it end-to-end: define what to build, design it, and build it.\n\nYonas Media manages roughly 15 active touring artists. Their booking operation ran across 15 individual Google Sheets, a CRM with 9,000+ venue records disconnected from the booking calendar, and verbal handoffs between three core team members.\n\nAfter an introductory meeting with Ben, I constructed a brief with a clear goal: establish a consolidated live view of every artist, their availability, booking status, and venue data \u2014 built for how the team worked.",
     problem: "15 spreadsheets, a disconnected CRM, and email handoffs \u2014 no single person could see the full booking picture",
     outcome: "Booking inquiry time: 13 min \u2192 1 min 10 sec. Contract entry time: 1 min 15 sec \u2192 ~5 sec. Live and in active daily use.",
     problemPoints: [
@@ -84,22 +84,35 @@ export const caseStudies: CaseStudy[] = [
     sections: [
       {
         heading: "The Hidden Cost",
-        body: "Before writing a line of code, we timed the work. Benchmarking with Ben revealed that evaluating a single booking inquiry \u2014 checking artist availability, cross-referencing routing, looking up a venue \u2014 took 13 minutes. He handles 10 to 15 of them a day. Downstream, Kylie was spending 1 minute 15 seconds re-entering confirmed booking data into the contract system \u2014 the same data Ben had already entered, copied by hand. Two people. Two workflows. Both measured before the tool existed so the after numbers would mean something.",
+        body: "Before writing a line of code, we timed the work. Benchmarking with Ben revealed that evaluating a single booking inquiry \u2014 checking artist availability, cross-referencing routing, looking up a venue \u2014 took 13 minutes. He handles 10 to 15 of them a day. Downstream, Kylie was spending 1 minute 15 seconds re-entering confirmed booking data into the contract system \u2014 the same data Ben had already entered, copied by hand. Two people. Two workflows. We now had the benchmarks that would define success.",
         customComponent: "journey-maps",
       },
       {
         heading: "Built Around How They Think",
-        body: "The decisions that shaped the tool didn\u2019t come from a brief \u2014 they came from the team. Ben\u2019s exact words in a working session were what changed \u201CCancelled\u201D to \u201CNeed to Fill\u201D: a fallen-through show isn\u2019t dead, it\u2019s an open routing date that needs filling. Kylie\u2019s frustration with inconsistent city and state data is why those fields are now locked and sourced from the venue database. The 365-row calendar exists because Ben thinks in terms of open dates, not upcoming events. Four decisions, four origins \u2014 all drawn from how the team already thought about their work.",
-        imageLabel: "TODO: Hand sketch \u2014 4 design decisions traced to team members",
+        body: "The decisions that shaped the tool came directly from working sessions with Ben and Kylie. Listening for how they actually thought about their work \u2014 not what they asked for \u2014 is what drove the directions sketched out here: a date-first entry model, and a venue search that considered both a venue-name approach and a broader search by city or state.",
+        imageCarousel: [
+          { src: "/images/yonas-media/sketch-date-first.png", alt: "Date-first filter view" },
+          { src: "/images/yonas-media/sketch-venue-search.png", alt: "Venue name autocomplete directions" },
+          { src: "/images/yonas-media/sketch-calendar-first.png", alt: "Calendar-first layout direction" },
+        ],
+      },
+      {
+        heading: "Finding the Visual Language",
+        body: "Before writing a line of CSS, I wanted to understand how the team thought about the tool aesthetically \u2014 not just functionally. A short moodboarding exercise with the team surfaced what tools they used daily, what products they admired, and how they wanted the tool to feel. The direction that emerged was confident and utilitarian \u2014 something that felt built for professionals, not assembled from a template.",
+        imageCarousel: [
+          { src: "/images/yonas-media/visual-direction-1.png", alt: "Visual direction 1" },
+          { src: "/images/yonas-media/visual-direction-2.png", alt: "Visual direction 2" },
+          { src: "/images/yonas-media/visual-direction-3.png", alt: "Visual direction 3" },
+        ],
       },
       {
         heading: "Built to Be Used",
         body: "There was no handoff on this project because there was no one to hand off to. As the designer and the developer, every decision from research to deployment was the same person\u2019s call \u2014 which compressed the feedback loop from days to minutes, and meant the tool could be in beta with real users while it was still being built. The constraint was the same one Ben faces every day: booking season doesn\u2019t wait. The tool had to be reliable before it had to be perfect.",
-        imageLabel: "TODO: Product screenshot \u2014 live booking calendar",
+        customComponent: "yonas-mvp-table",
       },
       {
         heading: "A New Baseline",
-        body: "[PLACEHOLDER \u2014 Post-launch measurement section. Write once follow-up contextual sessions with Ben and Kylie are complete and after-numbers exist.]",
+        body: "Two weeks after launch, we ran the same timed sessions with Ben and Kylie \u2014 same tasks, same conditions. The goal was simple: find out if the benchmarks we\u2019d set before building anything had moved.",
         imageLabel: "TODO: Product screenshot \u2014 second view or after-state comparison",
       },
     ],
