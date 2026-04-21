@@ -68,6 +68,7 @@ export interface CaseStudy {
   solutionInsertIndex?: number;
   bentoLayout?: "hero-split" | "hero-hero" | "hero-triple" | "side-by-side";
   bentoMedia?: BentoMediaItem[];
+  aiTools?: string[];
   nextSlug?: string;
   nextTitle?: string;
   ctaText?: string;

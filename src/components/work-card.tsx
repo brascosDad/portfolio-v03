@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState, Fragment } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { clsx } from "clsx";
@@ -24,8 +24,162 @@ const componentMap: Record<string, React.ComponentType> = {
   "profile-builder": ProfileBuilderPrototype,
 };
 
+const PHONE_FRAMED_COMPONENTS = new Set(["apply-flow", "profile-builder"]);
+
+const PHONE_W = 390 + 16;
+const PHONE_H = 780 + 16;
+
 interface WorkCardProps {
   study: CaseStudy;
+}
+
+function PhoneFrame({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative rounded-[44px] bg-[#1a1a1a] p-[8px] shadow-xl">
+      <div
+        className="relative rounded-[36px] overflow-hidden bg-white"
+        style={{ width: 390, height: 780 }}
+      >
+        <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[120px] h-[32px] bg-black rounded-full z-10" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ResponsivePhone({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const available = el.clientWidth;
+      setScale(Math.min(1, available / PHONE_W));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full flex justify-center">
+      <div
+        style={{
+          width: Math.round(PHONE_W * scale),
+          height: Math.round(PHONE_H * scale),
+        }}
+      >
+        <div
+          className="origin-top-left"
+          style={{
+            width: PHONE_W,
+            height: PHONE_H,
+            transform: scale < 1 ? `scale(${scale})` : undefined,
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LockIcon({ size = 11 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function LockButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-[6px] bg-bg-secondary text-text-muted hover:text-text-primary align-middle transition-colors cursor-pointer"
+      aria-label="View locked content"
+    >
+      <LockIcon />
+    </button>
+  );
+}
+
+function DiscreetModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Locked content"
+    >
+      <div
+        className="bg-bg-primary rounded-md p-[30px] max-w-[400px] w-full mx-[20px] shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="inline-flex items-center justify-center w-[40px] h-[40px] rounded-sm bg-bg-secondary text-text-muted">
+          <LockIcon size={18} />
+        </div>
+
+        <h3 className="mt-[16px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold text-text-primary">
+          Sorry, need to be discreet...
+        </h3>
+
+        <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+          I&apos;m happy to set up time to walk you through the full case study.
+        </p>
+
+        <div className="mt-[24px] flex flex-col gap-[10px]">
+          <a
+            href="mailto:ernestleeson@gmail.com?subject=Home%20Depot%20case%20study%20%E2%80%94%20let%27s%20connect"
+            className="flex items-center justify-center px-[20px] py-[10px] bg-accent hover:bg-accent-hover text-white rounded-sm text-[16px] md:text-[18px] font-medium transition-colors"
+          >
+            Email
+          </a>
+          <a
+            href="https://linkedin.com/in/ernestleeson"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center px-[20px] py-[10px] border border-border text-text-primary rounded-sm text-[16px] md:text-[18px] font-medium hover:bg-bg-secondary transition-colors"
+          >
+            Connect on LinkedIn
+          </a>
+          <button
+            onClick={onClose}
+            className="flex items-center justify-center px-[20px] py-[10px] text-text-muted rounded-sm text-[16px] md:text-[18px] font-medium hover:text-text-primary transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderPointWithLocks(point: string, onLockClick: () => void) {
+  if (!point.includes("<LOCK>")) return point;
+  const parts = point.split("<LOCK>");
+  return parts.map((part, i) => (
+    <Fragment key={i}>
+      {part}
+      {i < parts.length - 1 && <LockButton onClick={onLockClick} />}
+    </Fragment>
+  ));
 }
 
 function DelayedVideo({ media, className, style }: { media: BentoMediaItem; className?: string; style?: React.CSSProperties }) {
@@ -82,20 +236,27 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
   }
 
   if (media.type === "component" && media.componentId) {
-    // Yonas hero reel self-scales from its native 1440×900 via an internal ResizeObserver,
-    // so it gets a plain full-width wrapper instead of the phone-frame scaler used for the
-    // Home Depot prototypes.
     if (media.componentId === "yonas-reel") {
-      // YonasReel renders its own narration strip and silver laptop frame,
-      // so no additional wrapper is needed here.
       return (
         <div className="w-full">
           <YonasReel />
         </div>
       );
     }
+
     const Component = componentMap[media.componentId];
     if (!Component) return <PlaceholderImage label={media.alt || "Component"} aspect="video" />;
+
+    if (PHONE_FRAMED_COMPONENTS.has(media.componentId)) {
+      return (
+        <ResponsivePhone>
+          <PhoneFrame>
+            <Component />
+          </PhoneFrame>
+        </ResponsivePhone>
+      );
+    }
+
     const s = media.scale ?? 0.8;
     return (
       <div
@@ -123,6 +284,16 @@ export function WorkCard({ study }: WorkCardProps) {
     { type: "placeholder" as const, alt: "Detail" },
   ];
 
+  const problemPoints = study.problemPoints || [study.problem];
+  const outcomePoints = study.outcomePoints || [study.outcome];
+  const hasLocks =
+    problemPoints.some((p) => p.includes("<LOCK>")) ||
+    outcomePoints.some((p) => p.includes("<LOCK>"));
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const openModal = useCallback(() => setModalOpen(true), []);
+  const closeModal = useCallback(() => setModalOpen(false), []);
+
   return (
     <div className="group pt-[10px]">
       {/* Year */}
@@ -135,30 +306,58 @@ export function WorkCard({ study }: WorkCardProps) {
         {study.title.split(/\s[—\u2014]\s/)[1] || study.title}
       </h3>
 
+      {/* AI tool badges (optional) */}
+      {study.aiTools && study.aiTools.length > 0 && (
+        <div className="mt-[10px] flex flex-wrap gap-[8px]">
+          {study.aiTools.map((tool) => (
+            <span
+              key={tool}
+              className="px-[12px] py-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted bg-bg-secondary rounded-full"
+            >
+              {tool}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Bento media grid — each cell has its own bg, white gaps between */}
       <div className="mt-[20px] grid grid-cols-1 md:grid-cols-2 gap-[30px]">
-        {layout === "side-by-side" && media.map((item, i) => (
-          <div key={i} className="bg-bg-secondary rounded-md px-[20px] py-[30px] h-[350px] md:h-[700px] overflow-hidden flex items-center justify-center">
-            <BentoCell media={item} />
-          </div>
-        ))}
+        {layout === "side-by-side" && media.map((item, i) => {
+          const isPhoneFrame =
+            item.type === "component" &&
+            item.componentId !== undefined &&
+            PHONE_FRAMED_COMPONENTS.has(item.componentId);
+          return (
+            <div
+              key={i}
+              className={clsx(
+                "bg-bg-secondary rounded-md overflow-hidden flex items-center justify-center",
+                isPhoneFrame
+                  ? "py-[40px] px-[20px]"
+                  : "px-[20px] py-[30px] h-[350px] md:h-[700px]",
+              )}
+            >
+              <BentoCell media={item} />
+            </div>
+          );
+        })}
 
         {layout !== "side-by-side" && (
-          <div className="md:col-span-2 bg-bg-secondary rounded-md px-[30px] pt-[20px] pb-0">
+          <div className="md:col-span-2 bg-bg-secondary rounded-md px-[20px] pt-[10px] md:px-[30px] md:pt-[20px] pb-0">
             <BentoCell media={media[0]} />
           </div>
         )}
 
         {layout === "hero-split" && media[1] && media[2] && (
           <>
-            <div className="bg-bg-secondary rounded-md px-[40px] py-[30px] h-[350px] md:h-[700px] overflow-hidden">
+            <div className="bg-bg-secondary rounded-md px-[20px] py-[20px] md:px-[40px] md:py-[30px] h-[350px] md:h-[700px] overflow-hidden">
               <img
                 src={media[1].src || ""}
                 alt={media[1].alt || ""}
                 className="mx-auto object-contain rounded-lg h-full"
               />
             </div>
-            <div className="bg-bg-secondary rounded-md px-[40px] py-[30px] h-[350px] md:h-[700px] overflow-hidden">
+            <div className="bg-bg-secondary rounded-md px-[20px] py-[20px] md:px-[40px] md:py-[30px] h-[350px] md:h-[700px] overflow-hidden">
               <video
                 autoPlay
                 loop
@@ -173,7 +372,7 @@ export function WorkCard({ study }: WorkCardProps) {
         )}
 
         {layout === "hero-hero" && media[1] && (
-          <div className="md:col-span-2 bg-bg-secondary rounded-md px-[30px] py-[30px] aspect-[3/1] overflow-hidden flex items-center justify-center">
+          <div className="md:col-span-2 bg-bg-secondary rounded-md px-[20px] py-[20px] md:px-[30px] md:py-[30px] aspect-[3/1] overflow-hidden flex items-center justify-center">
             <video
               autoPlay
               loop
@@ -192,18 +391,36 @@ export function WorkCard({ study }: WorkCardProps) {
         )}
 
         {layout === "hero-triple" && (
-          <div className="md:col-span-2 bg-bg-secondary rounded-md py-[40px] px-[30px] overflow-hidden">
-            <div className="flex items-center justify-center gap-[20px] h-[250px] md:h-[500px]">
+          <>
+            {/* Mobile: 3 separate bento cells, one per screen */}
+            <div className="md:hidden col-span-1 grid grid-cols-1 gap-[30px]">
               {media.slice(1).map((item, i) => (
-                <img
+                <div
                   key={i}
-                  src={item.src || ""}
-                  alt={item.alt || ""}
-                  className="h-full min-w-0 object-contain"
-                />
+                  className="bg-bg-secondary rounded-md py-[30px] px-[20px] overflow-hidden flex items-center justify-center h-[350px]"
+                >
+                  <img
+                    src={item.src || ""}
+                    alt={item.alt || ""}
+                    className="h-full object-contain"
+                  />
+                </div>
               ))}
             </div>
-          </div>
+            {/* Tablet/desktop: grouped in one cell, three-up */}
+            <div className="hidden md:block md:col-span-2 bg-bg-secondary rounded-md py-[40px] px-[30px] overflow-hidden">
+              <div className="flex items-center justify-center gap-[20px] h-[500px]">
+                {media.slice(1).map((item, i) => (
+                  <img
+                    key={i}
+                    src={item.src || ""}
+                    alt={item.alt || ""}
+                    className="h-full min-w-0 object-contain"
+                  />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -230,9 +447,9 @@ export function WorkCard({ study }: WorkCardProps) {
             Problem
           </h4>
           <div className="mt-[5px] md:mt-[20px] space-y-2">
-            {(study.problemPoints || [study.problem]).map((point, i) => (
+            {problemPoints.map((point, i) => (
               <p key={i} className={clsx("text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug", i === 0 && point.endsWith(":") && "font-medium")}>
-                {point}
+                {renderPointWithLocks(point, openModal)}
               </p>
             ))}
           </div>
@@ -242,9 +459,9 @@ export function WorkCard({ study }: WorkCardProps) {
             Outcome
           </h4>
           <div className="mt-[5px] md:mt-[20px] space-y-2">
-            {(study.outcomePoints || [study.outcome]).map((point, i) => (
-              <div key={i} className="relative pl-0">
-                <span className="absolute -left-[30px] top-[2px]">
+            {outcomePoints.map((point, i) => (
+              <div key={i} className="flex items-start gap-[10px]">
+                <span className="flex-shrink-0 mt-[2px]">
                   {/eliminat/i.test(point) ? (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
@@ -255,7 +472,7 @@ export function WorkCard({ study }: WorkCardProps) {
                       <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
                       <path d="M10 5.5V14.5M10 14.5L6.5 11M10 14.5L13.5 11" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  ) : /adopt|daily active/i.test(point) ? (
+                  ) : /adopt|daily active|prototype|roadmap|tested/i.test(point) ? (
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="10" cy="10" r="9" stroke="#F23505" strokeWidth="2" />
                       <path d="M6.5 10.5L9 13L13.5 7.5" stroke="#F23505" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -268,7 +485,7 @@ export function WorkCard({ study }: WorkCardProps) {
                   )}
                 </span>
                 <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug">
-                  {point}
+                  {renderPointWithLocks(point, openModal)}
                 </p>
               </div>
             ))}
@@ -284,6 +501,8 @@ export function WorkCard({ study }: WorkCardProps) {
           </div>
         </div>
       </div>
+
+      {hasLocks && <DiscreetModal isOpen={modalOpen} onClose={closeModal} />}
     </div>
   );
 }

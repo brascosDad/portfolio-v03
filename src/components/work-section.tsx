@@ -1,6 +1,5 @@
 import { caseStudies } from "@/data/case-studies";
 import { WorkCard } from "./work-card";
-import { HomeDepotCard } from "./HomeDepotCard";
 
 export function WorkSection() {
   return (
@@ -9,13 +8,9 @@ export function WorkSection() {
         Case Studies
       </h2>
       <div className="mt-[20px] flex flex-col gap-80 md:gap-120">
-        {caseStudies.map((study) =>
-          study.slug === "homedepot" ? (
-            <HomeDepotCard key={study.slug} study={study} />
-          ) : (
-            <WorkCard key={study.slug} study={study} />
-          )
-        )}
+        {caseStudies.map((study) => (
+          <WorkCard key={study.slug} study={study} />
+        ))}
       </div>
     </section>
   );
