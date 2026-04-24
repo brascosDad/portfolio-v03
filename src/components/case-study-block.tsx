@@ -1,11 +1,30 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { Fragment, useRef, useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import type { CaseStudySection } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { Lightbox } from "./lightbox";
 import { AutoCarousel } from "./auto-carousel";
+
+// Renders body copy with minimal inline markup support. Splits on
+// <em>…</em> tokens and produces real <em> elements so prose like
+// "but not <em>where</em> in that experience" can emphasize a single
+// word without promoting the whole body string to rich text.
+function renderBody(text: string) {
+  const parts = text.split(/(<em>[^<]*<\/em>)/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^<em>([^<]*)<\/em>$/);
+    if (match) {
+      return (
+        <em key={i} className="italic">
+          {match[1]}
+        </em>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
 
 const CompetitiveGrid = dynamic(
   () => import("./homedepot/CompetitiveGrid").then((m) => m.CompetitiveGrid),
@@ -71,11 +90,11 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
           </h3>
           <div className="mt-[16px] max-w-[720px]">
             <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-              {section.body}
+              {renderBody(section.body)}
             </p>
             {section.bodyExtra && (
               <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-                {section.bodyExtra}
+                {renderBody(section.bodyExtra)}
               </p>
             )}
           </div>
@@ -102,6 +121,29 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
           )}
         </div>
       </>
+    );
+  }
+
+  // Text-only path: section provides no media, so render full-width
+  // prose instead of a 2-col layout with an empty right column.
+  const hasMedia =
+    !!section.imageSrc ||
+    !!section.videoSrc ||
+    !!section.imageLabel ||
+    (section.images && section.images.length > 0) ||
+    (section.imageCarousel && section.imageCarousel.length > 0) ||
+    (section.quotes && section.quotes.length > 0);
+
+  if (!hasMedia) {
+    return (
+      <div>
+        <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+          {section.heading}
+        </h3>
+        <p className="mt-[10px] max-w-[720px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+          {renderBody(section.body)}
+        </p>
+      </div>
     );
   }
 
@@ -155,7 +197,13 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
 
     // Auto-playing crossfade carousel
     if (section.imageCarousel && section.imageCarousel.length > 0) {
-      return <AutoCarousel images={section.imageCarousel} aspectClass="aspect-[4/5]" />;
+      return (
+        <AutoCarousel
+          images={section.imageCarousel}
+          aspectClass="aspect-[4/5]"
+          fit={section.imageCarouselFit ?? "cover"}
+        />
+      );
     }
 
     // Multiple images grid
@@ -212,7 +260,7 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
             {section.heading}
           </h3>
           <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-            {section.body}
+            {renderBody(section.body)}
           </p>
         </div>
         <div className={isReversed ? "md:order-1" : ""}>

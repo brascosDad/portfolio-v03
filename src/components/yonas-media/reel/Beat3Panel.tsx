@@ -12,13 +12,28 @@ type Subphase = "construction" | "demo" | "caption" | "value" | "interactive";
 // Payoff claim lifted from the case-study outcome:
 //   booking inquiry time: 13 min → 1 min 10 sec (about 91% faster).
 // The new-way timer ticks up toward this value during the demo and
-// freezes there through the caption + value-statement beats.
+// freezes there through the end-of-story toast beats.
 const NEW_WAY_TIMER_MS = 70 * 1000;
 // Rough real-time length of the Beat 3 demo. The timer tick maps real
 // elapsed to the displayed 1:10 so viewers see the number climb during
 // the demo rather than jumping at the end.
 const BEAT3_DEMO_REAL_MS = 12000;
-const VALUE_DWELL_MS = 2800;
+// How long the "Dana has her answer…" toast holds before swapping to
+// the value statement.
+const ANSWER_TOAST_DWELL_MS = 2400;
+// How long the "01:10 vs 13:00 — 91% faster." toast holds before the
+// HUD clears and the "Your turn" handoff lands.
+const VALUE_TOAST_DWELL_MS = 2200;
+// Pause between clearing timer+toast and the "Your turn" toast sliding
+// in — lets AnimatePresence exits resolve before the next enter.
+const HUD_CLEAR_GAP_MS = 360;
+// Delay between the "Your turn" toast landing and the persistent
+// "Replay demo" button appearing, so the reader notices the CTA first.
+const YOUR_TURN_TO_REPLAY_MS = 1000;
+
+const ANSWER_TOAST =
+  "Dana has her answer. Lila Moreno is booked at the Blue Heron.";
+const VALUE_TOAST = "01:10 vs 13:00 — 91% faster.";
 
 interface Beat3PanelProps {
   reducedMotion: boolean;
@@ -32,8 +47,6 @@ interface Beat3PanelProps {
 function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
-
-const CAPTION_DWELL_MS = 2600;
 
 export function Beat3Panel({
   reducedMotion,
@@ -130,21 +143,31 @@ export function Beat3Panel({
 
   const interactiveMode = subphase === "interactive";
 
+  // Dismiss the "Your turn — click around!" toast on first user input in
+  // interactive mode. The Replay-demo button lives in a separate HUD slot
+  // and persists, so only the toast goes away here.
+  const yourTurnDismissedRef = useRef(false);
   const handleAnyInteraction = useCallback(() => {
-    // No-op while not in interactive mode. Beat3Tool's internal click
-    // handlers check interactiveMode before mutating state.
-  }, []);
+    if (yourTurnDismissedRef.current) return;
+    if (subphaseRef.current !== "interactive") return;
+    yourTurnDismissedRef.current = true;
+    emitStory({ toast: null });
+  }, [emitStory]);
 
-  // Construction sequence.
+  // Construction sequence. Construction clears the carry-over HUD state
+  // from Beat 2's transition: the "Old way…" toast slides out right and
+  // the frozen 13:00 timer leaves too, so the tool assembles on a clean
+  // surface. The demo subphase brings the timer back to tick 0 → 1:10.
   useEffect(() => {
     if (subphase !== "construction") return;
     let cancelled = false;
 
     emitStory({
-      eyebrow: "The new way",
-      text: "Same inquiry. New tool.",
+      eyebrow: "",
+      text: "",
       timerMs: null,
       emphasize: false,
+      toast: null,
     });
 
     (async () => {
@@ -193,21 +216,23 @@ export function Beat3Panel({
     return () => clearInterval(iv);
   }, [subphase, reducedMotion, emitStory]);
 
-  // Caption: the story closes with Lila Moreno as the answer. Frozen
-  // timer stays visible so the next beat can compare it against 13:00.
+  // Caption: the frozen 01:10 timer stays visible and the answer toast
+  // slides in above it. After a dwell, hand off to the value subphase
+  // which swaps the toast to the payoff claim.
   useEffect(() => {
     if (subphase !== "caption") return;
     let cancelled = false;
 
     emitStory({
-      eyebrow: "The new way",
-      text: "Dana has her answer. She books Lila Moreno.",
+      eyebrow: "",
+      text: "",
       timerMs: NEW_WAY_TIMER_MS,
       emphasize: false,
+      toast: ANSWER_TOAST,
     });
 
     (async () => {
-      await wait(CAPTION_DWELL_MS);
+      await wait(ANSWER_TOAST_DWELL_MS);
       if (cancelled) return;
       setSubphase("value");
     })();
@@ -217,21 +242,17 @@ export function Beat3Panel({
     };
   }, [subphase, emitStory]);
 
-  // Value statement: the payoff. Same answer, 91% faster. Timer still
-  // shows 01:10 so the comparison lands.
+  // Value: swap the answer toast for the time-reduction payoff. Timer
+  // stays frozen at 01:10 so the "vs 13:00" comparison lines up with the
+  // number on screen.
   useEffect(() => {
     if (subphase !== "value") return;
     let cancelled = false;
 
-    emitStory({
-      eyebrow: "The new way",
-      text: "01:10 vs 13:00 — 91% faster.",
-      timerMs: NEW_WAY_TIMER_MS,
-      emphasize: false,
-    });
+    emitStory({ toast: VALUE_TOAST });
 
     (async () => {
-      await wait(VALUE_DWELL_MS);
+      await wait(VALUE_TOAST_DWELL_MS);
       if (cancelled) return;
       // Clear any pending-commit state from the demo's programmatic day
       // click so the user's first interactive click starts a fresh range.
@@ -244,31 +265,41 @@ export function Beat3Panel({
     };
   }, [subphase, emitStory]);
 
-  // When interactive mode activates, the narration strip hands over to the
-  // user with a playful CTA. The Replay button lives in the strip itself
-  // (owned by YonasReel) so nothing here renders it.
+  // Interactive: clear the HUD first so the value toast and timer exit
+  // together, then the "Your turn" toast slides in. A full second later
+  // the persistent "Replay demo" button lands so the reader registers
+  // the CTA before the replay affordance enters peripheral vision.
   useEffect(() => {
     if (subphase !== "interactive") return;
-    if (!startInteractive) {
-      emitStory({
-        eyebrow: "Your turn",
-        text: "Click around!",
-        timerMs: null,
-        emphasize: true,
-      });
-    }
+    if (startInteractive) return;
+    let cancelled = false;
+
+    emitStory({
+      eyebrow: "",
+      text: "",
+      timerMs: null,
+      emphasize: false,
+      toast: null,
+      showReplay: false,
+    });
+
+    (async () => {
+      await wait(HUD_CLEAR_GAP_MS);
+      if (cancelled) return;
+      emitStory({ toast: "Your turn — click around!" });
+      await wait(YOUR_TURN_TO_REPLAY_MS);
+      if (cancelled) return;
+      emitStory({ showReplay: true });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [subphase, startInteractive, emitStory]);
 
   const handleDemoComplete = useCallback(() => {
     setSubphase("caption");
   }, []);
-
-  const handleAnnotationChange = useCallback(
-    (text: string) => {
-      emitStory({ text });
-    },
-    [emitStory],
-  );
 
   const getTargetRect = useCallback((target: DemoTarget): DOMRect | null => {
     if (target.type === "prevMonth") return prevArrowRef.current?.getBoundingClientRect() ?? null;
@@ -322,7 +353,6 @@ export function Beat3Panel({
           onAdvanceMonth={handleAdvanceMonth}
           onSelectDay={handleDayClick}
           onToggleArtist={handleArtistToggle}
-          onAnnotationChange={handleAnnotationChange}
           onComplete={handleDemoComplete}
         />
       )}

@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
-import { TransitionCollapse } from "./TransitionCollapse";
 import { Beat3Panel } from "./Beat3Panel";
-import { StoryStrip, StoryState, INITIAL_STORY } from "./StoryStrip";
+import { StoryState, INITIAL_STORY } from "./StoryStrip";
+import { ReelHud } from "./ReelHud";
 import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
-type Phase = "beat1" | "beat2" | "transition" | "beat3";
+type Phase = "beat1" | "beat2" | "beat3";
 
 type Token = { cancelled: boolean };
 
@@ -25,7 +25,6 @@ export function YonasReel() {
 
   const [phase, setPhase] = useState<Phase>("beat1");
   const [replayCount, setReplayCount] = useState(0);
-  const hasPlayedOnceRef = useRef(false);
   const [story, setStory] = useState<StoryState>(INITIAL_STORY);
 
   const currentTokenRef = useRef<Token | null>(null);
@@ -84,10 +83,6 @@ export function YonasReel() {
       await awaitBeat();
       if (token.cancelled) return;
 
-      setPhase("transition");
-      await awaitBeat();
-      if (token.cancelled) return;
-
       setPhase("beat3");
       // Beat 3 runs autonomously; orchestrator ends here.
     })();
@@ -98,27 +93,6 @@ export function YonasReel() {
     };
   }, [replayCount, awaitBeat]);
 
-  // Viewport-based replay: when the reel re-enters the viewport after leaving, replay from the top.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            if (hasPlayedOnceRef.current) {
-              setReplayCount((n) => n + 1);
-            }
-            hasPlayedOnceRef.current = true;
-          }
-        }
-      },
-      { threshold: 0.3 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <>
       <h2 className="sr-only">
@@ -128,55 +102,51 @@ export function YonasReel() {
         is introduced and answers the same inquiry in seconds, finding a fourth artist
         available.
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
-        <StoryStrip state={story} onReplay={handleReplay} />
+      <div
+        style={{
+          border: `15px solid ${LAPTOP_BEZEL_COLOR}`,
+          borderRadius: 20,
+          overflow: "hidden",
+          background: LAPTOP_BEZEL_COLOR,
+        }}
+      >
         <div
-          style={{
-            border: `15px solid ${LAPTOP_BEZEL_COLOR}`,
-            borderRadius: 20,
-            overflow: "hidden",
-            background: LAPTOP_BEZEL_COLOR,
-          }}
+          ref={containerRef}
+          className="relative w-full overflow-hidden"
+          style={{ background: COLORS.bg }}
         >
           <div
-            ref={containerRef}
-            className="relative w-full overflow-hidden"
-            style={{ background: COLORS.bg }}
+            ref={scalerRef}
+            className="origin-top-left"
+            style={{ width: NATIVE_WIDTH, height: NATIVE_HEIGHT, position: "relative" }}
           >
-            <div
-              ref={scalerRef}
-              className="origin-top-left"
-              style={{ width: NATIVE_WIDTH, height: NATIVE_HEIGHT, position: "relative" }}
-            >
-              {phase === "beat1" && (
-                <Beat1Email
-                  reducedMotion={!!reducedMotion}
-                  onStoryUpdate={handleStoryUpdate}
-                  onComplete={handleBeatComplete}
-                />
-              )}
-              {phase === "beat2" && (
-                <Beat2OldWay
-                  reducedMotion={!!reducedMotion}
-                  onStoryUpdate={handleStoryUpdate}
-                  onComplete={handleBeatComplete}
-                />
-              )}
-              {phase === "transition" && (
-                <TransitionCollapse
-                  reducedMotion={!!reducedMotion}
-                  onStoryUpdate={handleStoryUpdate}
-                  onComplete={handleBeatComplete}
-                />
-              )}
-              {phase === "beat3" && (
-                <Beat3Panel
-                  reducedMotion={!!reducedMotion}
-                  onStoryUpdate={handleStoryUpdate}
-                />
-              )}
-            </div>
+            {phase === "beat1" && (
+              <Beat1Email
+                reducedMotion={!!reducedMotion}
+                onStoryUpdate={handleStoryUpdate}
+                onComplete={handleBeatComplete}
+              />
+            )}
+            {phase === "beat2" && (
+              <Beat2OldWay
+                reducedMotion={!!reducedMotion}
+                onStoryUpdate={handleStoryUpdate}
+                onComplete={handleBeatComplete}
+              />
+            )}
+            {phase === "beat3" && (
+              <Beat3Panel
+                reducedMotion={!!reducedMotion}
+                onStoryUpdate={handleStoryUpdate}
+              />
+            )}
           </div>
+          <ReelHud
+            timerMs={story.timerMs}
+            toast={story.toast}
+            showReplay={story.showReplay}
+            onReplay={handleReplay}
+          />
         </div>
       </div>
     </>

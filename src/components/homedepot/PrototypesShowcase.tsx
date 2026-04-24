@@ -10,16 +10,10 @@ export function PrototypesShowcase() {
         <div className="flex flex-col items-center">
           <ApplyFlowPrototype />
           <p className="mt-[12px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">Apply flow</p>
-          <p className="mt-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-accent">
-            Tap or click to interact with the prototype
-          </p>
         </div>
         <div className="flex flex-col items-center">
           <ProfileBuilderPrototype />
           <p className="mt-[12px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">Profile builder</p>
-          <p className="mt-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-accent">
-            Tap or click to interact with the prototype
-          </p>
         </div>
       </div>
     </div>

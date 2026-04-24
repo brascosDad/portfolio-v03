@@ -51,9 +51,12 @@ src/
 │   ├── globals.css          # Tailwind @theme tokens + global styles
 │   ├── layout.tsx           # Root layout, font loading, Nav
 │   ├── page.tsx             # Home page
+│   ├── about/page.tsx       # About page (full-bleed logo background)
 │   ├── akqaqt/page.tsx      # Case study
 │   ├── cdlxqt/page.tsx      # Case study
-│   └── atqt/page.tsx        # Case study
+│   ├── atqt/page.tsx        # Case study
+│   ├── homedepot/page.tsx   # Case study (password-gated at /homedepot/full)
+│   └── work/yonas-media/page.tsx # Case study
 ├── components/
 │   ├── nav.tsx              # Sticky navigation
 │   ├── hero.tsx             # Hero section with name + bio

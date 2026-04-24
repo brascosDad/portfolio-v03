@@ -45,16 +45,18 @@ const BEAT2_TOTAL_REAL_MS =
       TIMING.beat2.tabDwellMs) +
   (BEAT2_TABS.length - 1) * (TIMING.beat2.tabDipMs + TIMING.beat2.tabFadeInMs);
 
-// Dwell after the last verdict before handing off to the transition.
-const NO_MATCH_DWELL_MS = 1400;
+// Extra dwell on the zoomed Marcel HOLD row so the HOLD status reads.
+const MARCEL_HOLD_DWELL_MS = 700;
+// Pause after the focal row unscales back to 1x, before the toast lands.
+const POST_ZOOM_PAUSE_MS = 260;
+// How long the "Old way…" toast holds before the panel starts to exit.
+const OLD_WAY_TOAST_DWELL_MS = 1200;
+// Scale-down + fade exit for the entire Beat 2 panel. This replaces the
+// separate "TransitionCollapse" beat: the real DOM is what animates out,
+// so there's no content swap moment.
+const PANEL_EXIT_MS = 520;
 
-const SCROLL_COPY = [
-  "Scrolling to March 1 · Cora Lane",
-  "Now Jonah Ellery",
-  "Now The Marcel Trio",
-];
-const VERDICT_COPY = ["Cora — booked", "Jonah — booked", "Marcel — on hold"];
-const NO_MATCH_COPY = "No match. Time to try something else.";
+const OLD_WAY_TOAST = "Old way. Couldn't find a slot — let's try something else.";
 
 export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2Props) {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
@@ -62,6 +64,7 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
   const [focused, setFocused] = useState(false);
   const [verdictShown, setVerdictShown] = useState(false);
   const [innerFaded, setInnerFaded] = useState(false);
+  const [exiting, setExiting] = useState(false);
 
   const onCompleteRef = useRef(onComplete);
   const onStoryRef = useRef(onStoryUpdate);
@@ -80,13 +83,15 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
     [tab.seed, focal],
   );
 
-  // Initialize the story strip for this beat.
+  // Beat 2 owns the HUD timer only. No narration ribbon, no per-tab
+  // annotations — the visual progression tells the story on its own.
   useEffect(() => {
     onStoryRef.current({
-      eyebrow: "The old way",
-      text: SCROLL_COPY[0],
+      eyebrow: "",
+      text: "",
       timerMs: 0,
       emphasize: false,
+      toast: null,
     });
   }, []);
 
@@ -118,14 +123,13 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
         for (let i = 0; i < BEAT2_TABS.length; i++) {
           if (cancelled) return;
           setActiveTabIdx(i);
-          onStoryRef.current({ text: VERDICT_COPY[i] });
           await wait(300);
         }
         if (cancelled) return;
         timerFrozenRef.current = true;
         onStoryRef.current({
-          text: NO_MATCH_COPY,
           timerMs: TIMING.beat2.timerTotalMs,
+          toast: OLD_WAY_TOAST,
         });
         await wait(600);
         if (cancelled) return;
@@ -140,7 +144,6 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
         setFocused(false);
         setVerdictShown(false);
         setInnerFaded(false);
-        onStoryRef.current({ text: SCROLL_COPY[tabIdx] });
         // Allow the tab switch + fade-in to settle before the scroll begins.
         await wait(TIMING.beat2.tabFadeInMs);
         if (cancelled) return;
@@ -155,9 +158,8 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
         await wait(TIMING.beat2.rowScaleMs + TIMING.beat2.verdictStampDelay);
         if (cancelled) return;
 
-        // Pop verdict stamp + swap narration to the verdict line.
+        // Pop verdict stamp.
         setVerdictShown(true);
-        onStoryRef.current({ text: VERDICT_COPY[tabIdx] });
         await wait(TIMING.beat2.verdictStampMs);
         if (cancelled) return;
 
@@ -174,13 +176,31 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
 
       if (cancelled) return;
 
-      // Freeze the timer and swap narration to the "no match" line.
+      // Camera beat: hold on the zoomed Marcel HOLD row so the viewer
+      // registers the status, then zoom back to 1x before the toast lands.
+      await wait(MARCEL_HOLD_DWELL_MS);
+      if (cancelled) return;
+
+      // Freeze the timer at 13:00 — stays visible through the toast and
+      // the panel exit in the HUD.
       timerFrozenRef.current = true;
-      onStoryRef.current({
-        text: NO_MATCH_COPY,
-        timerMs: TIMING.beat2.timerTotalMs,
-      });
-      await wait(NO_MATCH_DWELL_MS);
+      onStoryRef.current({ timerMs: TIMING.beat2.timerTotalMs });
+
+      // Zoom back to 1x.
+      setFocused(false);
+      await wait(TIMING.beat2.rowScaleMs + POST_ZOOM_PAUSE_MS);
+      if (cancelled) return;
+
+      // Slide in the "Old way…" toast. This triggers the panel exit —
+      // the real Beat 2 DOM animates out in place, no content swap.
+      onStoryRef.current({ toast: OLD_WAY_TOAST });
+      await wait(OLD_WAY_TOAST_DWELL_MS);
+      if (cancelled) return;
+
+      // Panel exit: scale down + fade. The HUD (toast + timer) keeps
+      // its position on top; only the inner Beat 2 panel animates out.
+      setExiting(true);
+      await wait(PANEL_EXIT_MS);
       if (cancelled) return;
 
       onCompleteRef.current();
@@ -202,6 +222,10 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
         display: "flex",
         flexDirection: "column",
         position: "relative",
+        transformOrigin: "center center",
+        transform: exiting ? "scale(0.92)" : "scale(1)",
+        opacity: exiting ? 0 : 1,
+        transition: `transform ${PANEL_EXIT_MS}ms cubic-bezier(0.5, 0, 0.85, 0), opacity ${PANEL_EXIT_MS}ms ease`,
       }}
     >
       <SheetsTopBar />

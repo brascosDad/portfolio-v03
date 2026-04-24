@@ -6,10 +6,16 @@ import { FONTS } from "./tokens";
 export interface StoryState {
   eyebrow: string;
   text: string;
-  // Render the 13:00 timer on the right side. null hides the timer.
+  // Render the MM:SS timer in the HUD. null hides the timer pill.
   timerMs: number | null;
   // Emphasized state for the final "Your turn" CTA.
   emphasize: boolean;
+  // Toast message rendered in the HUD above the timer. null hides the
+  // toast pill.
+  toast: string | null;
+  // Show the persistent "Replay demo" button in the HUD. Turned on in
+  // Beat 3's interactive subphase, 1s after the "Your turn" toast lands.
+  showReplay: boolean;
 }
 
 export const INITIAL_STORY: StoryState = {
@@ -17,6 +23,8 @@ export const INITIAL_STORY: StoryState = {
   text: "",
   timerMs: null,
   emphasize: false,
+  toast: null,
+  showReplay: false,
 };
 
 interface StoryStripProps {

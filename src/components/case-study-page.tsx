@@ -8,9 +8,14 @@ import { CaseStudyBlock } from "./case-study-block";
 import { CaseStudyCta } from "./case-study-cta";
 import { Lightbox } from "./lightbox";
 import { ReelPoster } from "./yonas-media/reel/ReelPoster";
+import { useIsLg } from "@/lib/use-is-lg";
 
 const YonasPrototype = dynamic(
   () => import("./yonas-media/reel").then((m) => m.YonasPrototype),
+  { ssr: false, loading: () => <ReelPoster /> },
+);
+const YonasStatic = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasStatic),
   { ssr: false, loading: () => <ReelPoster /> },
 );
 
@@ -20,6 +25,7 @@ interface CaseStudyPageProps {
 
 function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isLg = useIsLg();
 
   const handleEnded = useCallback(() => {
     if (media.loopDelay && videoRef.current) {
@@ -30,6 +36,11 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
   }, [media.loopDelay]);
 
   if (media.type === "component" && media.componentId === "yonas-reel") {
+    // Below the `lg` breakpoint the interactive prototype is replaced
+    // with a frozen, non-interactive snapshot of the tool — same aspect,
+    // same chrome, no layout shift. Interactivity reads poorly on small
+    // screens and the reel is meant to be explored, not pecked at.
+    const showInteractive = isLg === true;
     return (
       <div>
         <div
@@ -40,7 +51,7 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
             borderRadius: 20,
           }}
         >
-          <YonasPrototype />
+          {showInteractive ? <YonasPrototype /> : <YonasStatic />}
         </div>
         {label && (
           <div className="mt-[1rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
@@ -98,6 +109,20 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
   return null;
 }
 
+function MvpToReelDivider() {
+  return (
+    <div className="flex items-center justify-between gap-4 py-5">
+      <span className="text-[12px] uppercase tracking-wider whitespace-nowrap text-text-secondary">
+        Initial build <span className="text-text-muted">↑</span>
+      </span>
+      <div className="flex-1 h-px bg-border" />
+      <span className="text-[12px] uppercase tracking-wider whitespace-nowrap text-text-secondary">
+        <span className="text-text-muted">↓</span> Final prototype
+      </span>
+    </div>
+  );
+}
+
 export function CaseStudyPage({ study }: CaseStudyPageProps) {
   const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
 
@@ -146,12 +171,59 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
           const insertIdx = study.solutionInsertIndex ?? study.sections.length;
           const preSections = study.sections.slice(0, insertIdx);
           const postSections = study.sections.slice(insertIdx);
+          const mediaIdx = study.mediaInsertIndex;
+          const heroMedia = study.bentoMedia?.[0];
+          const heroMediaLabel =
+            heroMedia?.type === "component" && heroMedia.componentId === "yonas-reel"
+              ? "Pan the calendar, toggle artists, click any date to explore."
+              : "One Tool, One Flow — interaction demo";
+
+          const renderSections = (sections: typeof study.sections, baseIndex: number) => {
+            if (mediaIdx === undefined || !heroMedia) {
+              return sections.map((section, i) => (
+                <CaseStudyBlock key={section.heading} section={section} index={baseIndex + i} />
+              ));
+            }
+            const out: React.ReactNode[] = [];
+            const isYonasReel =
+              heroMedia.type === "component" && heroMedia.componentId === "yonas-reel";
+            sections.forEach((section, i) => {
+              const absoluteIdx = baseIndex + i;
+              if (absoluteIdx === mediaIdx) {
+                if (isYonasReel) {
+                  out.push(<MvpToReelDivider key="__media-insert-divider__" />);
+                }
+                out.push(
+                  <MediaBlock
+                    key="__media-insert__"
+                    media={heroMedia}
+                    label={heroMediaLabel}
+                  />,
+                );
+              }
+              out.push(
+                <CaseStudyBlock key={section.heading} section={section} index={absoluteIdx} />,
+              );
+            });
+            if (mediaIdx === baseIndex + sections.length) {
+              if (isYonasReel) {
+                out.push(<MvpToReelDivider key="__media-insert-divider-tail__" />);
+              }
+              out.push(
+                <MediaBlock
+                  key="__media-insert-tail__"
+                  media={heroMedia}
+                  label={heroMediaLabel}
+                />,
+              );
+            }
+            return out;
+          };
+
           return (
             <>
               <div className="space-y-[60px]">
-                {preSections.map((section, i) => (
-                  <CaseStudyBlock key={section.heading} section={section} index={i} />
-                ))}
+                {renderSections(preSections, 0)}
               </div>
 
               {/* Solution section (optional) */}
@@ -185,17 +257,15 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
 
               {postSections.length > 0 && (
                 <div className="mt-[60px] space-y-[60px]">
-                  {postSections.map((section, i) => (
-                    <CaseStudyBlock key={section.heading} section={section} index={insertIdx + i} />
-                  ))}
+                  {renderSections(postSections, insertIdx)}
                 </div>
               )}
             </>
           );
         })()}
 
-        {/* Animation / video block (only if no solution section) */}
-        {!study.solutionHeading && study.bentoMedia && study.bentoMedia.length > 0 && (
+        {/* Animation / video block (only if no solution section AND no inline media insert) */}
+        {!study.solutionHeading && study.mediaInsertIndex === undefined && study.bentoMedia && study.bentoMedia.length > 0 && (
           <div className="mt-[60px]">
             <MediaBlock
               media={study.bentoMedia[0]}

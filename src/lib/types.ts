@@ -24,6 +24,9 @@ export interface CaseStudySection {
   portraitSrc?: string;
   images?: { src: string; label: string }[];
   imageCarousel?: { src: string; alt: string }[];
+  // "cover" (default) fills the slot and may crop; "contain" fits the
+  // entire image with background padding so nothing is cropped.
+  imageCarouselFit?: "cover" | "contain";
   customComponent?: string;
   subtitle?: string;
   bodyExtra?: string;
@@ -67,6 +70,9 @@ export interface CaseStudy {
   solutionImages?: SolutionImage[];
   metrics?: Metric[];
   solutionInsertIndex?: number;
+  // When set, bentoMedia[0] renders between sections at this index
+  // instead of after all sections.
+  mediaInsertIndex?: number;
   bentoLayout?: "hero-split" | "hero-hero" | "hero-triple" | "side-by-side";
   bentoMedia?: BentoMediaItem[];
   aiTools?: string[];

@@ -5,7 +5,6 @@ export const caseStudies: CaseStudy[] = [
     slug: "homedepot",
     title: "The Home Depot \u2014 Rethinking Job Search for Skilled Tradespeople",
     subtitle: "Identifying and validating opportunity areas for the Path to Pro Network candidate experience.",
-    eyebrow: "Home Depot \u00b7 Path to Pro Network \u00b7 2025\u20132026",
     meta: {
       company: "The Home Depot",
       role: "Lead UX Designer",
@@ -16,8 +15,8 @@ export const caseStudies: CaseStudy[] = [
     problem: "Candidate experience was inherited and untested \u2014 no one knew what was working or where job seekers were dropping off",
     outcome: "Three opportunity areas \u2014 each with tested, evidence-backed direction \u2014 moved into the FY26 product roadmap. Work that would typically take months was completed in under three weeks, using an AI-assisted workflow that compressed the cycle without cutting corners on rigor.",
     problemPoints: [
-      "Onboarding drop-off was <LOCK>% higher than desired",
-      "Job application rate was <LOCK>% lower than expected",
+      "Onboarding drop-off was significantly above the acceptable threshold.",
+      "Job application rate was well below expectations.",
     ],
     outcomePoints: [
       "6 competing prototypes built and tested with real tradespeople",
@@ -37,7 +36,7 @@ export const caseStudies: CaseStudy[] = [
       },
       {
         heading: "Where the Work Was",
-        body: "In the summer, I ran a design sprint. The team reviewed the current candidate experience and the accumulated research. The goal was to get aligned on what to focus on next. Each activity built on the one before \u2014 narrowing from broad landscape observations to specific opportunity areas.",
+        body: "The product team had identified the candidate experience as the area with the most friction \u2014 but not <em>where</em> in that experience. Before any design work could begin, we needed to find the seam. I ran a focused design sprint to locate it: structured activities, real constraints, a clear output. That sprint defined the problem space the rest of the project was built around.",
         customComponent: "sprint-structure",
       },
       {
@@ -57,11 +56,10 @@ export const caseStudies: CaseStudy[] = [
     slug: "work/yonas-media",
     title: "Yonas Media \u2014 Collapsing a 13-Minute Workflow for a Music Booking Team",
     subtitle: "A custom booking system replacing 15 spreadsheets and two disconnected venue databases for a music management company\u2019s full team.",
-    eyebrow: "Yonas Media \u00b7 Internal Tool \u00b7 2026",
     meta: {
       company: "Yonas Media",
       role: "Designer + Developer + Strategist",
-      projectType: "Internal Tool",
+      projectType: "Enterprise",
       year: "2026",
     },
     brief: "I wasn\u2019t handed this project \u2014 I went looking for it. The goal was to find a real company with a real problem and solve it end-to-end: define what to build, design it, and build it.\n\nYonas Media manages roughly 15 active touring artists. Their booking operation ran across 15 individual Google Sheets, a CRM with 9,000+ venue records disconnected from the booking calendar, and verbal handoffs between three core team members.\n\nAfter an introductory meeting with Ben, I constructed a brief with a clear goal: establish a consolidated live view of every artist, their availability, booking status, and venue data \u2014 built for how the team worked.",
@@ -81,6 +79,7 @@ export const caseStudies: CaseStudy[] = [
     bentoMedia: [
       { type: "component" as const, componentId: "yonas-reel", alt: "Yonas Media — animated booking story" },
     ],
+    mediaInsertIndex: 4,
     sections: [
       {
         heading: "The Hidden Cost",
@@ -104,6 +103,7 @@ export const caseStudies: CaseStudy[] = [
           { src: "/images/yonas-media/visual-direction-2.png", alt: "Visual direction 2" },
           { src: "/images/yonas-media/visual-direction-3.png", alt: "Visual direction 3" },
         ],
+        imageCarouselFit: "contain",
       },
       {
         heading: "Built to Be Used",
@@ -113,7 +113,6 @@ export const caseStudies: CaseStudy[] = [
       {
         heading: "A New Baseline",
         body: "Two weeks after launch, we ran the same timed sessions with Ben and Kylie \u2014 same tasks, same conditions. The goal was simple: find out if the benchmarks we\u2019d set before building anything had moved.",
-        imageLabel: "TODO: Product screenshot \u2014 second view or after-state comparison",
       },
     ],
     ctaText: "This is a live product, in active daily use by a team of ~20. The work isn\u2019t finished \u2014 it\u2019s in its second cycle, with a third already visible on the horizon. Want to see where this goes next?",

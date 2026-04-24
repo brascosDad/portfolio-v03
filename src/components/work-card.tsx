@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, Fragment } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { clsx } from "clsx";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { ReelPoster } from "./yonas-media/reel/ReelPoster";
+import { useIsLg } from "@/lib/use-is-lg";
 
 const ApplyFlowPrototype = dynamic(
   () => import("./homedepot/ApplyFlowPrototype").then((m) => m.ApplyFlowPrototype),
@@ -18,6 +19,17 @@ const YonasReel = dynamic(
   () => import("./yonas-media/reel").then((m) => m.YonasReel),
   { ssr: false, loading: () => <ReelPoster /> },
 );
+const YonasStatic = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasStatic),
+  { ssr: false, loading: () => <ReelPoster /> },
+);
+
+function YonasBentoView() {
+  const isLg = useIsLg();
+  // SSR and below-lg viewports get the static snapshot so there's no
+  // wasted animation work on mobile and no layout shift on swap.
+  return isLg === true ? <YonasReel /> : <YonasStatic />;
+}
 
 const componentMap: Record<string, React.ComponentType> = {
   "apply-flow": ApplyFlowPrototype,
@@ -87,101 +99,6 @@ function ResponsivePhone({ children }: { children: React.ReactNode }) {
   );
 }
 
-function LockIcon({ size = 11 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
-      <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LockButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-[6px] bg-bg-secondary text-text-muted hover:text-text-primary align-middle transition-colors cursor-pointer"
-      aria-label="View locked content"
-    >
-      <LockIcon />
-    </button>
-  );
-}
-
-function DiscreetModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Locked content"
-    >
-      <div
-        className="bg-bg-primary rounded-md p-[30px] max-w-[400px] w-full mx-[20px] shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="inline-flex items-center justify-center w-[40px] h-[40px] rounded-sm bg-bg-secondary text-text-muted">
-          <LockIcon size={18} />
-        </div>
-
-        <h3 className="mt-[16px] text-[20px] md:text-[22px] lg:text-[24px] font-semibold text-text-primary">
-          Sorry, need to be discreet...
-        </h3>
-
-        <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-          I&apos;m happy to set up time to walk you through the full case study.
-        </p>
-
-        <div className="mt-[24px] flex flex-col gap-[10px]">
-          <a
-            href="mailto:ernestleeson@gmail.com?subject=Home%20Depot%20case%20study%20%E2%80%94%20let%27s%20connect"
-            className="flex items-center justify-center px-[20px] py-[10px] bg-accent hover:bg-accent-hover text-white rounded-sm text-[16px] md:text-[18px] font-medium transition-colors"
-          >
-            Email
-          </a>
-          <a
-            href="https://linkedin.com/in/ernestleeson"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center px-[20px] py-[10px] border border-border text-text-primary rounded-sm text-[16px] md:text-[18px] font-medium hover:bg-bg-secondary transition-colors"
-          >
-            Connect on LinkedIn
-          </a>
-          <button
-            onClick={onClose}
-            className="flex items-center justify-center px-[20px] py-[10px] text-text-muted rounded-sm text-[16px] md:text-[18px] font-medium hover:text-text-primary transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function renderPointWithLocks(point: string, onLockClick: () => void) {
-  if (!point.includes("<LOCK>")) return point;
-  const parts = point.split("<LOCK>");
-  return parts.map((part, i) => (
-    <Fragment key={i}>
-      {part}
-      {i < parts.length - 1 && <LockButton onClick={onLockClick} />}
-    </Fragment>
-  ));
-}
-
 function DelayedVideo({ media, className, style }: { media: BentoMediaItem; className?: string; style?: React.CSSProperties }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -239,7 +156,7 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
     if (media.componentId === "yonas-reel") {
       return (
         <div className="w-full">
-          <YonasReel />
+          <YonasBentoView />
         </div>
       );
     }
@@ -286,13 +203,6 @@ export function WorkCard({ study }: WorkCardProps) {
 
   const problemPoints = study.problemPoints || [study.problem];
   const outcomePoints = study.outcomePoints || [study.outcome];
-  const hasLocks =
-    problemPoints.some((p) => p.includes("<LOCK>")) ||
-    outcomePoints.some((p) => p.includes("<LOCK>"));
-
-  const [modalOpen, setModalOpen] = useState(false);
-  const openModal = useCallback(() => setModalOpen(true), []);
-  const closeModal = useCallback(() => setModalOpen(false), []);
 
   return (
     <div className="group pt-[10px]">
@@ -306,13 +216,18 @@ export function WorkCard({ study }: WorkCardProps) {
         {study.title.split(/\s[—\u2014]\s/)[1] || study.title}
       </h3>
 
-      {/* AI tool badges (optional) */}
+      {/* AI tool badges (optional) — colorful gradient stroke reads as "AI" */}
       {study.aiTools && study.aiTools.length > 0 && (
         <div className="mt-[10px] flex flex-wrap gap-[8px]">
           {study.aiTools.map((tool) => (
             <span
               key={tool}
-              className="px-[12px] py-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted bg-bg-secondary rounded-full"
+              className="px-[12px] py-[4px] text-[12px] md:text-[14px] lg:text-[16px] text-text-primary rounded-full"
+              style={{
+                background:
+                  "linear-gradient(#FFFFFF, #FFFFFF) padding-box, linear-gradient(120deg, #F23505 0%, #EC4899 35%, #8B5CF6 65%, #3B82F6 100%) border-box",
+                border: "1.5px solid transparent",
+              }}
             >
               {tool}
             </span>
@@ -449,7 +364,7 @@ export function WorkCard({ study }: WorkCardProps) {
           <div className="mt-[5px] md:mt-[20px] space-y-2">
             {problemPoints.map((point, i) => (
               <p key={i} className={clsx("text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug", i === 0 && point.endsWith(":") && "font-medium")}>
-                {renderPointWithLocks(point, openModal)}
+                {point}
               </p>
             ))}
           </div>
@@ -485,7 +400,7 @@ export function WorkCard({ study }: WorkCardProps) {
                   )}
                 </span>
                 <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-primary leading-snug">
-                  {renderPointWithLocks(point, openModal)}
+                  {point}
                 </p>
               </div>
             ))}
@@ -502,7 +417,6 @@ export function WorkCard({ study }: WorkCardProps) {
         </div>
       </div>
 
-      {hasLocks && <DiscreetModal isOpen={modalOpen} onClose={closeModal} />}
     </div>
   );
 }
