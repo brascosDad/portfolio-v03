@@ -26,9 +26,9 @@ function NameTitleBlock() {
       <p className="font-sans text-[18px] font-semibold leading-snug">
         Ernest Son
       </p>
-      <p className="font-sans text-[16px] leading-snug mt-[2px]">
-        <span className="text-accent">Lead UX Designer</span>
-        <span className="mx-[6px]">·</span>
+      <p className="font-sans text-[16px] leading-snug mt-5">
+        <span className="font-semibold">Lead UX Designer</span>
+        <span className="mx-5">·</span>
         Atlanta, GA
       </p>
     </div>
@@ -69,7 +69,7 @@ function Paragraph3({ className }: { className?: string }) {
 
 function BottomCardBody({ className }: { className?: string }) {
   return (
-    <div className={`font-sans text-[16px] leading-[1.7] space-y-[20px] ${className ?? ""}`}>
+    <div className={`font-sans text-[16px] leading-[1.7] space-y-20 ${className ?? ""}`}>
       <p>
         Lately I&apos;ve been diving deeper into the build itself. Working
         alongside AI tools — primarily Claude and Claude Code — has changed how
@@ -94,7 +94,7 @@ function BottomCardBody({ className }: { className?: string }) {
         If that sounds like someone worth talking to,{" "}
         <a
           href={EMAIL_HREF}
-          className="text-accent no-underline hover:underline"
+          className="text-[#f5f5f5] underline decoration-accent decoration-2 underline-offset-4 hover:decoration-4"
         >
           let&apos;s connect
         </a>
@@ -106,29 +106,56 @@ function BottomCardBody({ className }: { className?: string }) {
 
 const DARK_CARD_CLASSES = "bg-[#1a1a1a] text-[#f5f5f5] rounded-sm";
 
+// Foreground accent circles are absolutely positioned inside the desktop
+// content canvas (max-w:1200). Because they share the canvas's coordinate
+// system with the cards and photos, the overlap ratio stays constant as
+// the layout responds — a circle tuned to nick a corner at 1440w still
+// nicks that same corner at 900w. Sizes and positions are tuned so each
+// circle only overlaps non-content areas (padding, photo background, or
+// corners outside text zones). Desktop only; hidden on mobile.
+interface AccentCircleProps {
+  size: number;
+  top: number | string;
+  left?: number | string;
+  right?: number | string;
+  zIndex?: number;
+}
+
+function AccentCircle({ size, top, left, right, zIndex = 4 }: AccentCircleProps) {
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        width: size,
+        height: size,
+        top,
+        left,
+        right,
+        zIndex,
+        background: "#F24405",
+        opacity: 0.75,
+        borderRadius: "50%",
+        pointerEvents: "none",
+      }}
+    />
+  );
+}
+
 function DesktopLayout() {
   const CANVAS_HEIGHT = 2100;
 
   return (
-    <div
-      className="hidden md:block relative w-full max-w-[1440px] mx-auto px-[60px] lg:px-[80px]"
-      style={{ paddingTop: 120, paddingBottom: 80 }}
-    >
+    <div className="hidden md:block relative w-full max-w-[1440px] mx-auto px-60 lg:px-80 pt-120 pb-80">
       <div className="relative mx-auto" style={{ height: CANVAS_HEIGHT, maxWidth: 1200 }}>
         {/* Top zone — dark card (left) */}
         <div
-          className={`absolute ${DARK_CARD_CLASSES}`}
-          style={{
-            top: 40,
-            left: 0,
-            width: 460,
-            padding: "28px 32px",
-            zIndex: 3,
-          }}
+          className={`absolute p-30 ${DARK_CARD_CLASSES}`}
+          style={{ top: 40, left: 0, width: 460, zIndex: 3 }}
         >
           <NameTitleBlock />
-          <OpeningLine className="mt-[24px]" />
-          <Paragraph2 className="mt-[20px]" />
+          <OpeningLine className="mt-30" />
+          <Paragraph2 className="mt-20" />
         </div>
 
         {/* Top zone — hiking photo (upper right) */}
@@ -141,21 +168,15 @@ function DesktopLayout() {
             alt="Ernest standing on a rocky overlook"
             width={1600}
             height={1200}
-            className="w-full h-auto block"
+            className="w-full h-auto block rounded-md"
             priority
           />
         </div>
 
         {/* Middle zone — paragraph 3 card (center-left) */}
         <div
-          className={`absolute ${DARK_CARD_CLASSES}`}
-          style={{
-            top: 720,
-            left: 240,
-            width: 500,
-            padding: "28px 32px",
-            zIndex: 3,
-          }}
+          className={`absolute p-30 ${DARK_CARD_CLASSES}`}
+          style={{ top: 690, left: 240, width: 500, zIndex: 3 }}
         >
           <Paragraph3 />
         </div>
@@ -170,7 +191,7 @@ function DesktopLayout() {
             alt="Ernest playing an acoustic guitar"
             width={1200}
             height={900}
-            className="w-full h-auto block"
+            className="w-full h-auto block rounded-md"
           />
         </div>
 
@@ -184,23 +205,28 @@ function DesktopLayout() {
             alt="Two dogs running"
             width={1400}
             height={700}
-            className="w-full h-auto block"
+            className="w-full h-auto block rounded-md"
           />
         </div>
 
         {/* Bottom zone — paragraphs 4–6 + inline CTA card (right) */}
         <div
-          className={`absolute ${DARK_CARD_CLASSES}`}
-          style={{
-            top: 1380,
-            right: 0,
-            width: 460,
-            padding: "28px 32px",
-            zIndex: 3,
-          }}
+          className={`absolute p-30 ${DARK_CARD_CLASSES}`}
+          style={{ top: 1380, right: 0, width: 460, zIndex: 3 }}
         >
           <BottomCardBody />
+          {/* Anchored to this card (not the canvas), so it stays in the
+              same relative position as the layout reflows. Sits above the
+              card's top edge with only a sliver into the top padding —
+              never reaches the text column. */}
+          <AccentCircle size={140} top={-120} right={40} />
         </div>
+
+        {/* Foreground accent circle — pinned to the canvas so the
+            overlap ratio with content stays constant as the layout
+            reflows. */}
+        {/* A: overlaps the left edge (landscape/sky) of the hiking photo */}
+        <AccentCircle size={180} top={260} left={610} />
       </div>
     </div>
   );
@@ -208,12 +234,12 @@ function DesktopLayout() {
 
 function MobileLayout() {
   return (
-    <div className="block md:hidden max-w-[1440px] mx-auto px-[24px] pt-[100px] pb-[60px]">
-      <div className="flex flex-col gap-[32px]">
-        <section className={DARK_CARD_CLASSES} style={{ padding: "20px" }}>
+    <div className="block md:hidden max-w-[1440px] mx-auto px-20 pt-100 pb-60">
+      <div className="flex flex-col gap-30">
+        <section className={`p-20 ${DARK_CARD_CLASSES}`}>
           <NameTitleBlock />
-          <OpeningLine className="mt-[20px]" />
-          <Paragraph2 className="mt-[16px]" />
+          <OpeningLine className="mt-20" />
+          <Paragraph2 className="mt-20" />
         </section>
 
         <Image
@@ -221,10 +247,10 @@ function MobileLayout() {
           alt="Ernest standing on a rocky overlook"
           width={1600}
           height={1200}
-          className="w-full h-auto block"
+          className="w-full h-auto block rounded-md"
         />
 
-        <section className={DARK_CARD_CLASSES} style={{ padding: "20px" }}>
+        <section className={`p-20 ${DARK_CARD_CLASSES}`}>
           <Paragraph3 />
         </section>
 
@@ -233,7 +259,7 @@ function MobileLayout() {
           alt="Ernest playing an acoustic guitar"
           width={1200}
           height={900}
-          className="w-full h-auto block"
+          className="w-full h-auto block rounded-md"
         />
 
         <Image
@@ -241,10 +267,10 @@ function MobileLayout() {
           alt="Two dogs running"
           width={1400}
           height={700}
-          className="w-full h-auto block"
+          className="w-full h-auto block rounded-md"
         />
 
-        <section className={DARK_CARD_CLASSES} style={{ padding: "20px" }}>
+        <section className={`p-20 ${DARK_CARD_CLASSES}`}>
           <BottomCardBody />
         </section>
       </div>
@@ -254,24 +280,32 @@ function MobileLayout() {
 
 function BottomCta() {
   return (
-    <section className="relative z-10 w-full max-w-[1440px] mx-auto px-[24px] md:px-[60px] lg:px-[80px] pb-[120px] pt-[40px] md:pt-[80px]">
-      <div
-        className={`${DARK_CARD_CLASSES} flex flex-col items-start gap-[20px]`}
-        style={{ padding: "40px 32px" }}
-      >
-        <h2 className="font-sans text-[22px] md:text-[28px] lg:text-[32px] font-semibold leading-snug">
-          Let&apos;s connect.
-        </h2>
-        <p className="font-sans text-[16px] md:text-[18px] leading-[1.7] max-w-[560px]">
-          If anything here sparks a conversation — a role, a project, or just a
-          hello — I&apos;d love to hear from you.
-        </p>
-        <a
-          href={EMAIL_HREF}
-          className="inline-flex items-center rounded-sm bg-accent hover:bg-accent-hover px-[20px] py-[12px] text-[16px] md:text-[18px] font-medium text-white transition-colors"
+    <section className="relative z-10 w-full max-w-[1440px] mx-auto px-20 md:px-60 lg:px-80 pb-120 pt-40 md:pt-80">
+      <div className="relative">
+        {/* Desktop-only corner accent peeking onto the CTA card's top-right
+            padding zone — never reaches text/button. */}
+        <div className="hidden md:block">
+          <AccentCircle size={140} top={-40} right={40} />
+        </div>
+
+        <div
+          className={`relative p-40 ${DARK_CARD_CLASSES} flex flex-col items-start gap-20`}
+          style={{ zIndex: 3 }}
         >
-          Send me an email
-        </a>
+          <h2 className="font-sans text-[22px] md:text-[28px] lg:text-[32px] font-semibold leading-snug">
+            Let&apos;s connect.
+          </h2>
+          <p className="font-sans text-[16px] md:text-[18px] leading-[1.7] max-w-[560px]">
+            If anything here sparks a conversation — a role, a project, or just
+            a hello — I&apos;d love to hear from you.
+          </p>
+          <a
+            href={EMAIL_HREF}
+            className="inline-flex items-center rounded-sm bg-accent hover:bg-accent-hover px-20 py-10 text-[16px] md:text-[18px] font-semibold text-black transition-colors"
+          >
+            Send me an email
+          </a>
+        </div>
       </div>
     </section>
   );

@@ -62,7 +62,7 @@ const activities = [
 const anchorActivity = {
   title: "Opportunity prioritization",
   description:
-    "Ranked candidate areas by signal strength — where findings from the audit, competitive review, and existing research all pointed in the same direction.",
+    "Ranked candidate areas by signal strength — where findings from the audit, competitive review, and existing research all pointed in the same direction. The full team — UX research, product, and engineering — reviewed the research overview, competitive walkthrough, and current experience audit together, then dot voted on where we had the most open questions and risk. Three areas rose to the top.",
 };
 
 export function SprintStructure() {

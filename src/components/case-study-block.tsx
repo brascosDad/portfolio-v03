@@ -92,11 +92,15 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
             <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
               {renderBody(section.body)}
             </p>
-            {section.bodyExtra && (
-              <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-                {renderBody(section.bodyExtra)}
-              </p>
-            )}
+            {section.bodyExtra &&
+              section.bodyExtra.split(/\n\n+/).map((para, i) => (
+                <p
+                  key={i}
+                  className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug"
+                >
+                  {renderBody(para)}
+                </p>
+              ))}
           </div>
           {CustomComponent && (
             <div className="mt-[30px]">
