@@ -11,7 +11,7 @@ export const caseStudies: CaseStudy[] = [
       projectType: "B2B2C \u00b7 Mobile, Web",
       year: "2025\u20132026",
     },
-    brief: "The candidate experience on Path to Pro had gone untouched for two years. Research had already identified several areas that needed attention, but the product had been in KTLO and nothing had been acted on. When a new team was assembled to pick it back up, I joined a few weeks later \u2014 and the question of where to focus was still wide open.",
+    brief: "The candidate experience on Path to Pro had gone untouched for two years. Research had already identified several areas that needed attention, but the product had been in KTLO and nothing had been acted on. When a new team was assembled to pick it back up, I joined a few weeks later \u2014 and the question of where to focus was still wide open.\n\nI was the sole designer on a cross-functional team that included front-end and back-end developers, a product manager, two marketing stakeholders, and a dedicated UX researcher. I collaborated closely with both the product manager and the UX researcher throughout the project — the researcher brought deep product history that shaped every design decision.",
     problem: "Candidate experience was inherited and untested \u2014 no one knew what was working or where job seekers were dropping off",
     outcome: "Three opportunity areas \u2014 each with tested, evidence-backed direction \u2014 moved into the FY26 product roadmap. Work that would typically take months was completed in under three weeks, using an AI-assisted workflow that compressed the cycle without cutting corners on rigor.",
     problemPoints: [
@@ -36,13 +36,14 @@ export const caseStudies: CaseStudy[] = [
       },
       {
         heading: "Where the Work Was",
-        body: "The product team had identified the candidate experience as the area with the most friction \u2014 but not <em>where</em> in that experience. Before any design work could begin, we needed to find the seam. I ran a focused design sprint to locate it: structured activities, real constraints, a clear output. That sprint defined the problem space the rest of the project was built around.",
+        body: "The product team had identified the candidate experience as the area with the most friction \u2014 but not <em>where</em> in that experience. Before any design work could begin, we needed to find the seam. I ran a focused design sprint to locate it: structured activities, real constraints, a clear output. That sprint defined the problem space the rest of the project was built around. The full team — UX research, product, and engineering — reviewed the research together and dot voted on where we had the most open questions and risk. Three areas rose to the top.",
         customComponent: "sprint-structure",
       },
       {
-        heading: "Making the Time",
+        heading: "Finding a Strong Signal",
         body: "Development had slowed around Thanksgiving, and the product manager and I saw it as the perfect time for discovery on the areas the team had flagged during the sprint.",
         bodyExtra: "For each area, I used Gemini to help conceive the research plan \u2014 iterating on it until the approach felt right, then building competing prototype pairs in Figma Make. Each pair tested a different hypothesis about what candidates actually needed. Where testing surfaced unclear findings, we iterated and ran another cycle. We put the prototypes in front of real tradespeople, watched how they responded, synthesized the findings, and presented back to the team. The prototypes themselves were more interactive than anything Figma alone could have handled cleanly \u2014 Figma Make made the complexity manageable. The three areas consumed about two and a half weeks \u2014 work that would typically stretch across a month or more.\n\nOur bar for a meaningful signal wasn\u2019t a perfect score \u2014 it was 80% of participants responding with genuine, unprompted enthusiasm. Prompted responses carry inherent social bias and tell you what people will tolerate. Unprompted ones tell you what they actually want.\n\nOne usability finding stood out. Early prototypes asked candidates to rate their years of experience directly alongside a skill selection \u2014 two questions in close proximity. Participants consistently glossed over the experience input. Separating them into sequential steps changed the behavior immediately.\n\nOne direction generated the strongest signal of the entire study. An AI-assisted profile builder produced 100% unprompted enthusiasm across every participant. That finding directly shaped the design direction that moved into development.",
+        inlineComponent: { id: "onboarding-wireframes", afterParagraph: 1 },
         customComponent: "prototypes",
       },
     ],

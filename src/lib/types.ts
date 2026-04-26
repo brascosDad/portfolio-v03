@@ -30,6 +30,10 @@ export interface CaseStudySection {
   customComponent?: string;
   subtitle?: string;
   bodyExtra?: string;
+  // Renders a registered component between paragraphs of bodyExtra.
+  // afterParagraph is the 0-indexed split position: 0 = after body, 1 = after
+  // the first bodyExtra paragraph, etc.
+  inlineComponent?: { id: string; afterParagraph: number };
   gateBlock?: { heading: string; body: string };
 }
 

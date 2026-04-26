@@ -35,6 +35,9 @@ const SprintStructure = dynamic(
 const PrototypesShowcase = dynamic(
   () => import("./homedepot/PrototypesShowcase").then((m) => m.PrototypesShowcase),
 );
+const OnboardingWireframes = dynamic(
+  () => import("./homedepot/OnboardingWireframes").then((m) => m.OnboardingWireframes),
+);
 const JourneyMaps = dynamic(
   () => import("./yonas-media/JourneyMaps").then((m) => m.JourneyMaps),
 );
@@ -48,6 +51,10 @@ const customComponentMap: Record<string, React.ComponentType> = {
   "prototypes": PrototypesShowcase,
   "journey-maps": JourneyMaps,
   "yonas-mvp-table": YonasMvpTable,
+};
+
+const inlineComponentMap: Record<string, React.ComponentType> = {
+  "onboarding-wireframes": OnboardingWireframes,
 };
 
 interface CaseStudyBlockProps {
@@ -92,15 +99,24 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
             <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
               {renderBody(section.body)}
             </p>
-            {section.bodyExtra &&
-              section.bodyExtra.split(/\n\n+/).map((para, i) => (
-                <p
-                  key={i}
-                  className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug"
-                >
-                  {renderBody(para)}
-                </p>
-              ))}
+            {(() => {
+              const inline = section.inlineComponent;
+              const InlineComponent = inline ? inlineComponentMap[inline.id] : undefined;
+              const paragraphs = section.bodyExtra ? section.bodyExtra.split(/\n\n+/) : [];
+              return (
+                <>
+                  {InlineComponent && inline?.afterParagraph === 0 && <InlineComponent />}
+                  {paragraphs.map((para, i) => (
+                    <Fragment key={i}>
+                      <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                        {renderBody(para)}
+                      </p>
+                      {InlineComponent && inline?.afterParagraph === i + 1 && <InlineComponent />}
+                    </Fragment>
+                  ))}
+                </>
+              );
+            })()}
           </div>
           {CustomComponent && (
             <div className="mt-[30px]">

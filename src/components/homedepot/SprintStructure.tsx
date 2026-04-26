@@ -14,12 +14,20 @@ function ArrowIcon() {
   );
 }
 
-function LockIcon() {
+const opportunityAreas = ["Onboarding", "Profile building", "Job application"];
+
+function OpportunityChips() {
   return (
-    <svg className="w-[11px] h-[11px] text-[#ccc]" viewBox="0 0 16 16" fill="none">
-      <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
+    <div className="flex items-center justify-center gap-[6px] flex-wrap mt-[10px] mb-[10px]">
+      {opportunityAreas.map((area) => (
+        <span
+          key={area}
+          className="bg-white border border-[#d0d0d0] rounded-full px-[10px] py-[3px] text-[10px] text-[#1a1a1a] whitespace-nowrap"
+        >
+          {area}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -62,7 +70,7 @@ const activities = [
 const anchorActivity = {
   title: "Opportunity prioritization",
   description:
-    "Ranked candidate areas by signal strength — where findings from the audit, competitive review, and existing research all pointed in the same direction. The full team — UX research, product, and engineering — reviewed the research overview, competitive walkthrough, and current experience audit together, then dot voted on where we had the most open questions and risk. Three areas rose to the top.",
+    "Ranked candidate areas by signal strength — where findings from the audit, competitive review, and existing research all pointed in the same direction.",
 };
 
 export function SprintStructure() {
@@ -152,14 +160,9 @@ export function SprintStructure() {
             <div className="text-[12px] font-medium text-[#1a1a1a] mb-[5px]">
               Opportunity areas identified
             </div>
+            <OpportunityChips />
             <div className="text-[11px] text-[#999] leading-[1.45]">
               Each backed by converging evidence from the current state, competitive landscape, and existing research.
-            </div>
-            <div className="flex items-center justify-center gap-[5px] mt-[12px]">
-              <LockIcon />
-              <span className="text-[10px] text-[#bbb] tracking-[0.03em]">
-                Details available on request
-              </span>
             </div>
           </div>
         </div>
@@ -243,14 +246,9 @@ export function SprintStructure() {
             <div className="text-[12px] font-medium text-[#1a1a1a] mb-[5px]">
               Opportunity areas identified
             </div>
+            <OpportunityChips />
             <div className="text-[11px] text-[#999] leading-[1.45]">
               Each backed by converging evidence from the current state, competitive landscape, and existing research.
-            </div>
-            <div className="flex items-center justify-center gap-[5px] mt-[12px]">
-              <LockIcon />
-              <span className="text-[10px] text-[#bbb] tracking-[0.03em]">
-                Details available on request
-              </span>
             </div>
           </div>
         </div>
