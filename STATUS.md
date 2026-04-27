@@ -1,43 +1,59 @@
 # Portfolio v03 — Session Status
 
-Last updated: 2026-04-26
+Last updated: 2026-04-27
 Branch: `feature/yonas-hero-reel`
 
 ## What changed this session
 
-All work focused on the Home Depot case study (`/homedepot`).
+All work focused on the Home Depot case study (`/homedepot`) and its home-page work card.
 
-### 1. Sprint diagram (`SprintStructure.tsx`)
-- Reverted "Opportunity prioritization" card description to its original one-sentence form (a prior session had appended unreadable narrative copy to the card; that narrative was moved to the body paragraph above the diagram in `case-studies.ts`).
-- In the Output card, replaced the "Details available on request" lock row with three white-bg pill chips: **Onboarding · Profile building · Job application**. Pills sit between "Opportunity areas identified" and the "Each backed by converging evidence…" subtext. Applied in both desktop and mobile blocks. `LockIcon` helper removed (no remaining usage).
+### 1. New `resultPoints` field on `CaseStudy`
+- Added optional `resultPoints?: string[]` to `src/lib/types.ts`.
+- `case-study-page.tsx` Result block now reads `resultPoints || outcomePoints || [outcome]`.
+- Lets the home-page work card show a tight outcome summary while the case-study Result section lists fuller, longer-form bullets.
 
-### 2. Section heading rename
-- "Making the Time" → **"Finding a Strong Signal"** (in `case-studies.ts`).
+### 2. Home Depot result + work-card copy
+In `src/data/case-studies.ts` (homedepot entry):
+- `problemPoints[1]`: "Job application **rate** was well below expectations." → "Job application **confidence** was well below expectations."
+- `outcomePoints` (work card on home page) replaced with:
+  - "Onboarding time on task reduced by 65%"
+  - "Candidate confidence improved from 1 to 4 out of 5"
+  - The work-card icon resolver in `work-card.tsx` picks down-arrow for "reduced" and up-arrow for "improved" — semantics line up.
+- New `resultPoints` (Result section on `/homedepot`):
+  - "Onboarding time on task reduced by 65%"
+  - "Candidate confidence in the job application flow improved from 1 (not confident) to 4 (very confident) out of 5"
+  - "All 3 directions moved from discovery into development"
 
-### 3. New component: `OnboardingWireframes`
-Path: `src/components/homedepot/OnboardingWireframes.tsx`. Static, no interactivity.
-- Renders two competing onboarding prototypes — Proto A (Ultra-short, 2 screens) and Proto B (Standard, 4 screens).
-- Style: black/white only, `#2C2C2A` for borders/text, `#696969` for solid button fill (lightened from the original dark per design feedback), `#B4B2A9` for field borders, `#888780` for muted text. No pure black, no brand color.
-- Font: `var(--font-roboto)` (chosen over the default body font so the wireframes read as mobile UI rather than long-form prose).
-- Layout responsive across breakpoints:
-  - **Below `md`**: two prototypes stacked vertically, each prototype's flow stacked vertically with `↓` arrows.
-  - **`md` and up**: each prototype's flow goes left-to-right with `→` arrows; phones use `flex-1 basis-0 max-w-[220px]` so they shrink to fit the 720px body container.
-  - **`lg` and up**: entire wireframe section scales 1.10× via `transform: scale` with `transform-origin: top left`. `lg:pb-32` on the section absorbs the resulting vertical overhang.
-- Both prototype flow rows use `md:justify-start` so phones sit flush with the column-label left edge.
-- Inserted into the "Finding a Strong Signal" section between the first and second `bodyExtra` paragraphs (after "…month or more.", before "Our bar for a meaningful signal…").
+### 3. Bridging sentence — "Where the Work Was"
+Prepended one sentence to that section's body so a fast reader doesn't read the competitive analysis as a separate effort from the design sprint:
 
-### 4. Inline-component plumbing
-To support placing a component between paragraphs of `bodyExtra`, added:
-- `inlineComponent?: { id: string; afterParagraph: number }` field on `CaseStudySection` (`src/lib/types.ts`).
-- Registry + render logic in `case-study-block.tsx` (`inlineComponentMap`, paragraph-aware splitting). `afterParagraph: 0` would render before the first `bodyExtra` paragraph; `afterParagraph: 1` is the only value used today.
+> "The competitive analysis wasn't a separate effort — it was one of three inputs to a focused design sprint."
 
-### 5. Case study brief — second paragraph
-Added a paragraph to the Home Depot brief covering team composition (sole designer; cross-functional team with FE + BE devs, PM, two marketing stakeholders, dedicated UX researcher) and noting the close collaboration with the PM and UX researcher.
+### 4. Onboarding wireframes — Risk/Benefit captions
+In `src/components/homedepot/OnboardingWireframes.tsx`, both prototype captions (A — Ultra-short, B — Standard):
+- "Risk:" and "Benefit:" are now bold.
+- Each on its own line via `<span style={{ display: "block" }}>`, 8px gap between lines.
+
+### 5. Onboarding wireframes — confidentiality note
+Added a single-line muted italic 11px caption beneath the prototype rows:
+
+> "Competing prototype pairs were also developed and tested for profile building and job application. Details available on request."
+
+### 6. Prototype showcase label
+In `src/components/homedepot/PrototypesShowcase.tsx`:
+- "Profile builder" → "AI-assisted profile builder — strongest signal of the study".
+- "Apply flow" caption left untouched.
+
+## Files touched
+- `src/lib/types.ts`
+- `src/components/case-study-page.tsx`
+- `src/data/case-studies.ts`
+- `src/components/homedepot/OnboardingWireframes.tsx`
+- `src/components/homedepot/PrototypesShowcase.tsx`
 
 ## Branch state
-- Local branch is **9 commits ahead** of `origin/feature/yonas-hero-reel` (8 prior + 1 new from this session).
-- An untracked `package-lock 2.json` sits at the project root — looks accidental (duplicate lockfile from a copy/merge). **Not committed.** Consider deleting.
+- All changes verified with `npm run build` (clean) and `npx eslint src` (no new errors; only pre-existing `next/image` warnings).
+- An untracked `package-lock 2.json` sits at the project root — still looks accidental, **not committed**, consider deleting.
 
-## Anything pending / worth eyeballing
-- The 1.10× scale on `OnboardingWireframes` at `lg` is a `transform: scale` (not actual size growth). Inner text remains pixel-sized so the visual fidelity is fine, but if you ever change content height significantly, re-check that `lg:pb-32` still absorbs the overhang.
-- I have not opened `/homedepot` in a browser to spot-check the visual changes — `npm run build` passed clean but visual QA is on you.
+## Up next
+- Yonas Media case study tweaks (scope TBD next session).

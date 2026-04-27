@@ -298,7 +298,7 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
             </div>
           ) : (
             <div className="mt-[10px] space-y-2">
-              {(study.outcomePoints || [study.outcome]).map((point, i) => (
+              {(study.resultPoints || study.outcomePoints || [study.outcome]).map((point, i) => (
                 <p key={i} className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
                   {point}
                 </p>

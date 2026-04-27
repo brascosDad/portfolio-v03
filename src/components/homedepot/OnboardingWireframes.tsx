@@ -373,8 +373,12 @@ export function OnboardingWireframes() {
           </div>
 
           <Caption>
-            Risk: results may feel generic without detailed profile data. Benefit: near-zero drop-off before the
-            candidate sees value.
+            <span style={{ display: "block" }}>
+              <strong>Risk:</strong> results may feel generic without detailed profile data.
+            </span>
+            <span style={{ display: "block", marginTop: "8px" }}>
+              <strong>Benefit:</strong> near-zero drop-off before the candidate sees value.
+            </span>
           </Caption>
         </div>
 
@@ -424,10 +428,26 @@ export function OnboardingWireframes() {
           </div>
 
           <Caption>
-            Risk: higher drop-off before results. Benefit: richer profile from day one, better job matching quality.
+            <span style={{ display: "block" }}>
+              <strong>Risk:</strong> higher drop-off before results.
+            </span>
+            <span style={{ display: "block", marginTop: "8px" }}>
+              <strong>Benefit:</strong> richer profile from day one, better job matching quality.
+            </span>
           </Caption>
         </div>
       </div>
+        <p
+          style={{
+            fontSize: "11px",
+            color: MUTED,
+            lineHeight: 1.5,
+            marginTop: "32px",
+            fontStyle: "italic",
+          }}
+        >
+          Competing prototype pairs were also developed and tested for profile building and job application. Details available on request.
+        </p>
       </div>
     </section>
   );

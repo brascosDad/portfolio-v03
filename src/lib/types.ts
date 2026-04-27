@@ -68,6 +68,11 @@ export interface CaseStudy {
   outcome: string;
   problemPoints?: string[];
   outcomePoints?: string[];
+  // Optional override for the bullets shown in the case study's Result
+  // section. When omitted, the Result section falls back to outcomePoints.
+  // Lets the home-page work card show a tight outcome summary while the
+  // detail page lists fuller, longer-form result bullets.
+  resultPoints?: string[];
   sections: CaseStudySection[];
   solutionHeading?: string;
   solutionBody?: string;

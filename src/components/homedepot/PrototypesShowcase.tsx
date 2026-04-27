@@ -13,7 +13,7 @@ export function PrototypesShowcase() {
         </div>
         <div className="flex flex-col items-center">
           <ProfileBuilderPrototype />
-          <p className="mt-[12px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">Profile builder</p>
+          <p className="mt-[12px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">AI-assisted profile builder — strongest signal of the study</p>
         </div>
       </div>
     </div>

@@ -16,11 +16,16 @@ export const caseStudies: CaseStudy[] = [
     outcome: "Three opportunity areas \u2014 each with tested, evidence-backed direction \u2014 moved into the FY26 product roadmap. Work that would typically take months was completed in under three weeks, using an AI-assisted workflow that compressed the cycle without cutting corners on rigor.",
     problemPoints: [
       "Onboarding drop-off was significantly above the acceptable threshold.",
-      "Job application rate was well below expectations.",
+      "Job application confidence was well below expectations.",
     ],
     outcomePoints: [
-      "6 competing prototypes built and tested with real tradespeople",
-      "All 3 directions moved to the product roadmap",
+      "Onboarding time on task reduced by 65%",
+      "Candidate confidence improved from 1 to 4 out of 5",
+    ],
+    resultPoints: [
+      "Onboarding time on task reduced by 65%",
+      "Candidate confidence in the job application flow improved from 1 (not confident) to 4 (very confident) out of 5",
+      "All 3 directions moved from discovery into development",
     ],
     aiTools: ["NotebookLM", "Gemini", "Figma Make"],
     bentoLayout: "side-by-side",
@@ -36,7 +41,7 @@ export const caseStudies: CaseStudy[] = [
       },
       {
         heading: "Where the Work Was",
-        body: "The product team had identified the candidate experience as the area with the most friction \u2014 but not <em>where</em> in that experience. Before any design work could begin, we needed to find the seam. I ran a focused design sprint to locate it: structured activities, real constraints, a clear output. That sprint defined the problem space the rest of the project was built around. The full team — UX research, product, and engineering — reviewed the research together and dot voted on where we had the most open questions and risk. Three areas rose to the top.",
+        body: "The competitive analysis wasn’t a separate effort — it was one of three inputs to a focused design sprint. The product team had identified the candidate experience as the area with the most friction \u2014 but not <em>where</em> in that experience. Before any design work could begin, we needed to find the seam. I ran a focused design sprint to locate it: structured activities, real constraints, a clear output. That sprint defined the problem space the rest of the project was built around. The full team — UX research, product, and engineering — reviewed the research together and dot voted on where we had the most open questions and risk. Three areas rose to the top.",
         customComponent: "sprint-structure",
       },
       {
