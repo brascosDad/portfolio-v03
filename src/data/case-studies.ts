@@ -20,7 +20,7 @@ export const caseStudies: CaseStudy[] = [
     ],
     outcomePoints: [
       "Onboarding time on task reduced by 65%",
-      "Candidate confidence improved from 1 to 4 out of 5",
+      "Application confidence improved from 1 to 4 (out of 5)",
     ],
     resultPoints: [
       "Onboarding time on task reduced by 65%",
@@ -81,6 +81,7 @@ export const caseStudies: CaseStudy[] = [
       "Reduced contract entry time from 1 min 15 sec to ~5 sec",
       "90% daily active usage across a 15-person team",
     ],
+    aiTools: ["Claude Code", "Claude"],
     bentoLayout: "hero-hero" as const,
     bentoMedia: [
       { type: "component" as const, componentId: "yonas-reel", alt: "Yonas Media — animated booking story" },

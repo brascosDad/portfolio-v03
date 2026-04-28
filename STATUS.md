@@ -48,6 +48,10 @@ All work focused on the Yonas Media case study (`/work/yonas-media`), plus a glo
 ### 9. Tailwind preflight gotcha (worth remembering)
 Tailwind preflight applies `img { max-width: 100% }`, which silently caps any `w-[NNN%]` set via utility class. When you need an `<img>` larger than its container (e.g., for a pan-zoom animation), add `max-w-none` alongside the width utility.
 
+### 10. Home-page work card tweaks
+- Home Depot `outcomePoints[1]`: "Candidate confidence improved from 1 to 4 out of 5" → "Application confidence improved from 1 to 4 (out of 5)".
+- Yonas Media: added `aiTools: ["Claude Code", "Claude"]` so the existing `WorkCard` AI-tool badges render two pills ("Claude Code", "Claude") under the title — matching the HD card pattern.
+
 ## Files touched
 - `src/lib/types.ts`
 - `src/data/case-studies.ts`
