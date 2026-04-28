@@ -72,6 +72,9 @@ src/
 │   ├── marquee.tsx          # Scrolling text marquee
 │   ├── footer.tsx           # Footer with contact CTA
 │   ├── section-wrapper.tsx  # Reusable section container (max-w-6xl, px-6)
+│   ├── caption.tsx          # Shared left-bordered caption block (bold label + body)
+│   ├── auto-carousel.tsx    # Auto-advancing image carousel with optional per-slide caption + selection badge
+│   ├── lightbox.tsx         # Modal full-size image viewer
 │   └── placeholder-image.tsx # Placeholder for images not yet added
 ├── data/
 │   └── site.ts              # Central site data (name, bio, links)

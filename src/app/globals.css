@@ -70,3 +70,52 @@ a:hover {
   background-color: var(--color-accent);
   color: white;
 }
+
+/* F-pattern pan on the Yonas current-state journey map. The image renders
+   at 150% container width (base) and is held at scale 2 the entire
+   animation so the rows stay zoomed-in and legible end-to-end. The walk:
+   across the top header row (Ben → scenario → time cost → status → date)
+   so the user gets the preface, back to the left, down through actions
+   / touchpoints / thinking & feeling, a quick pan right across thinking
+   & feeling to capture the emotional column, back to the left, down
+   through pain points to opportunities, hold there. Translates are
+   percentages of the image's own (unscaled) box; transform-origin: top
+   left keeps the math predictable. With base 150% and scale 2 the
+   rendered image is 3× container width and ~3.49× container height (the
+   image's natural aspect is 1:1.164). Horizontal full pan = -133.3%.
+   Vertical row stops are -200% × row_fraction; max practical Y is
+   ~-128% (image bottom flush with container bottom). */
+@keyframes journeyMapPan {
+  /* Top header row, top-left — Ben + first column */
+  0%   { transform: translate(0, 0) scale(2); }
+  /* Pan right across the top row — scenario, time cost, status, date */
+  21%  { transform: translate(-133.3%, 0) scale(2); }
+  /* Back to the left, drop to actions row */
+  28%  { transform: translate(0, -30%) scale(2); }
+  /* Down to touchpoints */
+  35%  { transform: translate(0, -60%) scale(2); }
+  /* Down to thinking & feeling */
+  42%  { transform: translate(0, -90%) scale(2); }
+  /* Quick pan right across thinking & feeling — emotional experience */
+  64%  { transform: translate(-133.3%, -90%) scale(2); }
+  /* Back to the left, drop to pain points */
+  71%  { transform: translate(0, -110%) scale(2); }
+  /* Down to opportunities (image bottom flush with container bottom) */
+  85%  { transform: translate(0, -128%) scale(2); }
+  /* Hold on opportunities, still zoomed-in */
+  100% { transform: translate(0, -128%) scale(2); }
+}
+
+.journey-map-pan {
+  transform-origin: top left;
+  animation: journeyMapPan 36s ease-in-out forwards;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-map-pan {
+    animation: none;
+    transform: translate(0, 0) scale(2);
+    transform-origin: top left;
+  }
+}

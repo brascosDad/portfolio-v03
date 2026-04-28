@@ -64,7 +64,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "A custom booking system replacing 15 spreadsheets and two disconnected venue databases for a music management company\u2019s full team.",
     meta: {
       company: "Yonas Media",
-      role: "Designer + Developer + Strategist",
+      role: "Solo Designer, Developer & Project Lead",
       projectType: "Enterprise",
       year: "2026",
     },
@@ -91,34 +91,84 @@ export const caseStudies: CaseStudy[] = [
         heading: "The Hidden Cost",
         body: "Before writing a line of code, we timed the work. Benchmarking with Ben revealed that evaluating a single booking inquiry \u2014 checking artist availability, cross-referencing routing, looking up a venue \u2014 took 13 minutes. He handles 10 to 15 of them a day. Downstream, Kylie was spending 1 minute 15 seconds re-entering confirmed booking data into the contract system \u2014 the same data Ben had already entered, copied by hand. Two people. Two workflows. We now had the benchmarks that would define success.",
         customComponent: "journey-maps",
+        customComponentLayout: "side-by-side",
       },
       {
         heading: "Built Around How They Think",
         body: "The decisions that shaped the tool came directly from working sessions with Ben and Kylie. Listening for how they actually thought about their work \u2014 not what they asked for \u2014 is what drove the directions sketched out here: a date-first entry model, and a venue search that considered both a venue-name approach and a broader search by city or state.",
         imageCarousel: [
-          { src: "/images/yonas-media/sketch-date-first.png", alt: "Date-first filter view" },
-          { src: "/images/yonas-media/sketch-venue-search.png", alt: "Venue name autocomplete directions" },
-          { src: "/images/yonas-media/sketch-calendar-first.png", alt: "Calendar-first layout direction" },
+          {
+            src: "/images/yonas-media/sketch-calendar-first.png",
+            alt: "Calendar-first layout direction",
+            caption: {
+              label: "Calendar-first layout.",
+              body: "Ben didn’t think in lists — he thought in calendars. This sketch explored mapping artist availability to a month view, closer to how he already reasoned about routing.",
+            },
+          },
+          {
+            src: "/images/yonas-media/sketch-date-first.png",
+            alt: "Date-first filter view",
+            caption: {
+              label: "Date-first filter.",
+              body: "Every inquiry starts with a date. This sketch asked one question: how do we get there faster? A date range filter at the top, everything else secondary.",
+            },
+          },
+          {
+            src: "/images/yonas-media/sketch-venue-search.png",
+            alt: "Venue name autocomplete directions",
+            caption: {
+              label: "Venue autocomplete.",
+              body: "Kylie was entering venue, city, state, and country as separate fields — and getting them wrong. This sketch explored letting the venue drive everything. One search, location auto-filled.",
+            },
+          },
         ],
       },
       {
         heading: "Finding the Visual Language",
         body: "Before writing a line of CSS, I wanted to understand how the team thought about the tool aesthetically \u2014 not just functionally. A short moodboarding exercise with the team surfaced what tools they used daily, what products they admired, and how they wanted the tool to feel. The direction that emerged was confident and utilitarian \u2014 something that felt built for professionals, not assembled from a template.",
         imageCarousel: [
-          { src: "/images/yonas-media/visual-direction-1.png", alt: "Visual direction 1" },
-          { src: "/images/yonas-media/visual-direction-2.png", alt: "Visual direction 2" },
-          { src: "/images/yonas-media/visual-direction-3.png", alt: "Visual direction 3" },
+          {
+            src: "/images/yonas-media/visual-direction-1.png",
+            alt: "Neo-Swiss visual direction",
+            selected: false,
+            caption: {
+              label: "Neo-Swiss.",
+              body: "Inspired by Linear and Vercel. Precise and structured, but the high contrast felt cold and fatiguing for all-day use.",
+            },
+          },
+          {
+            src: "/images/yonas-media/visual-direction-2.png",
+            alt: "Cyber-tactical / gaming visual direction",
+            selected: false,
+            caption: {
+              label: "Cyber-Tactical.",
+              body: "Inspired by Discord, Twitch, and Palantir. High energy, but too heavy for daylight work. The team consistently gravitated toward lighter themes.",
+            },
+          },
+          {
+            src: "/images/yonas-media/visual-direction-3.png",
+            alt: "Refined industrial visual direction — selected",
+            selected: true,
+            caption: {
+              label: "Refined Industrial.",
+              body: "Inspired by Basecamp and Stripe. Light surfaces, single accent, built for professionals. Initial explorations ran too dark — we pulled the palette back until it felt right.",
+            },
+          },
         ],
         imageCarouselFit: "contain",
       },
       {
         heading: "Built to Be Used",
         body: "There was no handoff on this project because there was no one to hand off to. As the designer and the developer, every decision from research to deployment was the same person\u2019s call \u2014 which compressed the feedback loop from days to minutes, and meant the tool could be in beta with real users while it was still being built. The constraint was the same one Ben faces every day: booking season doesn\u2019t wait. The tool had to be reliable before it had to be perfect.",
+        bodyExtra:
+          "One tension worth naming: the original Google Sheets had eight to ten columns, and the team was attached to them. Reducing that to the most commonly used fields meant pushing back on familiar patterns — but the horizontal scrolling and cognitive load those extra columns created was working against the tool’s core job. Simplicity won. The columns that stayed are the ones that get used every day.",
         customComponent: "yonas-mvp-table",
       },
       {
         heading: "A New Baseline",
         body: "Two weeks after launch, we ran the same timed sessions with Ben and Kylie \u2014 same tasks, same conditions. The goal was simple: find out if the benchmarks we\u2019d set before building anything had moved.",
+        bodyExtra:
+          "One thing that shifted post-launch: the team discovered they needed date ranges, not single dates. It was an eleventh-hour adjustment — though not a surprising one. Routing logic rarely lives on a single day. The benchmarks moved sharply, and the expectation is they’ll move further as the tool matures.",
       },
     ],
     ctaText: "This is a live product, in active daily use by a team of ~20. The work isn\u2019t finished \u2014 it\u2019s in its second cycle, with a third already visible on the horizon. Want to see where this goes next?",

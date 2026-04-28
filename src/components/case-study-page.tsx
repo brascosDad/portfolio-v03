@@ -9,6 +9,7 @@ import { CaseStudyCta } from "./case-study-cta";
 import { Lightbox } from "./lightbox";
 import { ReelPoster } from "./yonas-media/reel/ReelPoster";
 import { useIsLg } from "@/lib/use-is-lg";
+import { Caption } from "./caption";
 
 const YonasPrototype = dynamic(
   () => import("./yonas-media/reel").then((m) => m.YonasPrototype),
@@ -54,12 +55,9 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
           {showInteractive ? <YonasPrototype /> : <YonasStatic />}
         </div>
         {label && (
-          <div className="mt-[1rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
-            <p className="font-sans text-[12px] md:text-[14px] lg:text-[16px] text-text-primary leading-[1.5]">
-              <strong className="font-bold">Live prototype.</strong>{" "}
-              {label}
-            </p>
-          </div>
+          <Caption label="Live prototype." className="mt-[1rem]">
+            {label}
+          </Caption>
         )}
       </div>
     );
@@ -68,27 +66,27 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
   if (media.type === "video" && media.src) {
     const hasTransform = media.scale || media.translateY;
     return (
-      <div className="overflow-hidden rounded-md bg-bg-secondary border border-border flex flex-col items-center justify-center px-[30px] pt-[20px] pb-[20px]">
-        <div className="overflow-hidden aspect-video w-full">
-          <video
-            ref={videoRef}
-            autoPlay
-            loop={!media.loopDelay}
-            muted
-            playsInline
-            className="w-full object-cover"
-            style={hasTransform ? {
-              transform: `scale(${media.scale ?? 1}) translateY(${media.translateY ?? 0}px)`,
-            } : undefined}
-            onEnded={media.loopDelay ? handleEnded : undefined}
-          >
-            <source src={media.src} />
-          </video>
+      <div>
+        <div className="overflow-hidden rounded-md bg-bg-secondary border border-border flex flex-col items-center justify-center px-[30px] pt-[20px] pb-[20px]">
+          <div className="overflow-hidden aspect-video w-full">
+            <video
+              ref={videoRef}
+              autoPlay
+              loop={!media.loopDelay}
+              muted
+              playsInline
+              className="w-full object-cover"
+              style={hasTransform ? {
+                transform: `scale(${media.scale ?? 1}) translateY(${media.translateY ?? 0}px)`,
+              } : undefined}
+              onEnded={media.loopDelay ? handleEnded : undefined}
+            >
+              <source src={media.src} />
+            </video>
+          </div>
         </div>
         {label && (
-          <p className="mt-[10px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">
-            {label}
-          </p>
+          <Caption className="mt-[1rem]">{label}</Caption>
         )}
       </div>
     );

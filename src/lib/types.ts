@@ -23,11 +23,20 @@ export interface CaseStudySection {
   quotes?: string[];
   portraitSrc?: string;
   images?: { src: string; label: string }[];
-  imageCarousel?: { src: string; alt: string }[];
+  imageCarousel?: {
+    src: string;
+    alt: string;
+    selected?: boolean;
+    caption?: { label: string; body: string };
+  }[];
   // "cover" (default) fills the slot and may crop; "contain" fits the
   // entire image with background padding so nothing is cropped.
   imageCarouselFit?: "cover" | "contain";
   customComponent?: string;
+  // Default "stacked" renders heading + body + custom component vertically.
+  // "side-by-side" renders the section in the same 2-col layout as regular
+  // image/video sections, with the custom component as the media slot.
+  customComponentLayout?: "stacked" | "side-by-side";
   subtitle?: string;
   bodyExtra?: string;
   // Renders a registered component between paragraphs of bodyExtra.

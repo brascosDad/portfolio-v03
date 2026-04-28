@@ -1,59 +1,70 @@
 # Portfolio v03 — Session Status
 
-Last updated: 2026-04-27
+Last updated: 2026-04-28
 Branch: `feature/yonas-hero-reel`
 
 ## What changed this session
 
-All work focused on the Home Depot case study (`/homedepot`) and its home-page work card.
+All work focused on the Yonas Media case study (`/work/yonas-media`), plus a global caption-style consistency pass and supporting infrastructure.
 
-### 1. New `resultPoints` field on `CaseStudy`
-- Added optional `resultPoints?: string[]` to `src/lib/types.ts`.
-- `case-study-page.tsx` Result block now reads `resultPoints || outcomePoints || [outcome]`.
-- Lets the home-page work card show a tight outcome summary while the case-study Result section lists fuller, longer-form bullets.
+### 1. Yonas role label
+`src/data/case-studies.ts` — Yonas meta `role` updated:
+- "Designer + Developer + Strategist" → "Solo Designer, Developer & Project Lead"
 
-### 2. Home Depot result + work-card copy
-In `src/data/case-studies.ts` (homedepot entry):
-- `problemPoints[1]`: "Job application **rate** was well below expectations." → "Job application **confidence** was well below expectations."
-- `outcomePoints` (work card on home page) replaced with:
-  - "Onboarding time on task reduced by 65%"
-  - "Candidate confidence improved from 1 to 4 out of 5"
-  - The work-card icon resolver in `work-card.tsx` picks down-arrow for "reduced" and up-arrow for "improved" — semantics line up.
-- New `resultPoints` (Result section on `/homedepot`):
-  - "Onboarding time on task reduced by 65%"
-  - "Candidate confidence in the job application flow improved from 1 (not confident) to 4 (very confident) out of 5"
-  - "All 3 directions moved from discovery into development"
+### 2. New shared `Caption` component
+- `src/components/caption.tsx` — left-bordered, accent-tinted caption block (`border-l-2 border-accent`, `bg-accent/[0.06]`, `rounded-r-[6px]`). Optional bold `label` inline with the body text.
+- Adopted on the live-prototype caption (`case-study-page.tsx`), the video MediaBlock caption (pulled out of the video frame so it isn't double-bordered), `JourneyMaps`, the Home Depot `PrototypesShowcase`, and per-slide carousel captions.
+- `SprintStructure` and `CompetitiveGrid` already used the same inline classes — left as-is.
 
-### 3. Bridging sentence — "Where the Work Was"
-Prepended one sentence to that section's body so a fast reader doesn't read the competitive analysis as a separate effort from the design sprint:
+### 3. Sketch carousel — captions + reorder
+"Built Around How They Think" sketches now appear in the order Calendar-first → Date-first → Venue, each with a bold-label caption rendered via the AutoCarousel's per-slide caption support.
 
-> "The competitive analysis wasn't a separate effort — it was one of three inputs to a focused design sprint."
+### 4. Visual direction carousel — badge + caption
+- Per-slide selection badge (✓ Selected direction / ✗ Not selected) in the top-right of the image earlier, then moved to a centered row directly below the image (above the caption block) per design feedback. Dots stay inside the image at bottom-center.
+- Per-slide bold-label caption (Neo-Swiss / Cyber-Tactical / Refined Industrial) rendered in the new shared Caption style.
+- AutoCarousel default dwell extended to 8s when any slide has a caption (3.5s otherwise).
 
-### 4. Onboarding wireframes — Risk/Benefit captions
-In `src/components/homedepot/OnboardingWireframes.tsx`, both prototype captions (A — Ultra-short, B — Standard):
-- "Risk:" and "Benefit:" are now bold.
-- Each on its own line via `<span style={{ display: "block" }}>`, 8px gap between lines.
+### 5. AutoCarousel infra
+`src/components/auto-carousel.tsx` — `imageCarousel` items now accept optional `selected: boolean` and `caption: { label, body }` fields. Captions stack in a single grid cell (so block height matches the tallest caption — no layout jump on swap). Badge crossfades on slide change via Framer Motion `AnimatePresence`.
 
-### 5. Onboarding wireframes — confidentiality note
-Added a single-line muted italic 11px caption beneath the prototype rows:
+### 6. Journey map — F-pattern pan + lightbox
+`src/components/yonas-media/JourneyMaps.tsx` rewritten:
+- Portrait container (`aspect-[4/5]`), image at `w-[150%]` with `max-w-none` so Tailwind preflight's `img { max-width: 100% }` doesn't cap the override.
+- F-pattern CSS keyframe animation (`journeyMapPan` in `globals.css`): top header L→R → step down through actions / touchpoints / thinking & feeling → pan right across thinking & feeling for the emotional column → step down through pain points → opportunities → hold. Held at `scale(2)` throughout (no zoom-out at the end). 36s total duration, `ease-in-out`.
+- `prefers-reduced-motion` users see the top-left static state.
+- Click anywhere on the container opens the lightbox at full size (replaced the previous inline-expand pattern).
+- Caption beneath via the new Caption component.
 
-> "Competing prototype pairs were also developed and tested for profile building and job application. Details available on request."
+### 7. `customComponentLayout` field on `CaseStudySection`
+- Added `customComponentLayout?: "stacked" | "side-by-side"` to `src/lib/types.ts`.
+- `case-study-block.tsx` extended: when set to `"side-by-side"`, the section renders heading/body/bodyExtra in one column and the custom component in the other (using the same alternating left/right logic as image sections).
+- "The Hidden Cost" uses this flag so the journey map sits in a 2-col row alongside the body copy instead of full-width-stacked.
 
-### 6. Prototype showcase label
-In `src/components/homedepot/PrototypesShowcase.tsx`:
-- "Profile builder" → "AI-assisted profile builder — strongest signal of the study".
-- "Apply flow" caption left untouched.
+### 8. Section copy — bodyExtra additions
+- "Built to Be Used" — added a paragraph on the column-reduction tradeoff (Google Sheets had 8–10 columns, simplification meant pushback but cognitive load was the real cost).
+- "A New Baseline" — added a paragraph on the post-launch date-range adjustment (eleventh-hour but unsurprising).
+- `case-study-block.tsx` text-only path now renders `bodyExtra` paragraphs (the custom-component path already did).
+
+### 9. Tailwind preflight gotcha (worth remembering)
+Tailwind preflight applies `img { max-width: 100% }`, which silently caps any `w-[NNN%]` set via utility class. When you need an `<img>` larger than its container (e.g., for a pan-zoom animation), add `max-w-none` alongside the width utility.
 
 ## Files touched
 - `src/lib/types.ts`
-- `src/components/case-study-page.tsx`
 - `src/data/case-studies.ts`
-- `src/components/homedepot/OnboardingWireframes.tsx`
+- `src/components/caption.tsx` (new)
+- `src/components/case-study-block.tsx`
+- `src/components/case-study-page.tsx`
+- `src/components/auto-carousel.tsx`
+- `src/components/yonas-media/JourneyMaps.tsx`
 - `src/components/homedepot/PrototypesShowcase.tsx`
+- `src/app/globals.css`
+- `CLAUDE.md`
+- `STATUS.md`
 
 ## Branch state
-- All changes verified with `npm run build` (clean) and `npx eslint src` (no new errors; only pre-existing `next/image` warnings).
-- An untracked `package-lock 2.json` sits at the project root — still looks accidental, **not committed**, consider deleting.
+- All changes verified with `npm run build` (clean).
+- Untracked `package-lock 2.json` at project root — accidental, **not committed**, consider deleting.
 
 ## Up next
-- Yonas Media case study tweaks (scope TBD next session).
+- Pick which row/column percentages need nudging on the journey map after viewing in dev.
+- Decide whether to roll the Caption refactor into `SprintStructure` and `CompetitiveGrid` for code consistency (they already match visually).
