@@ -2,7 +2,7 @@ import type { CaseStudy } from "@/lib/types";
 
 export const caseStudies: CaseStudy[] = [
   {
-    slug: "homedepot",
+    slug: "work/homedepot",
     title: "The Home Depot \u2014 Rethinking Job Search for Skilled Tradespeople",
     subtitle: "Identifying and validating opportunity areas for the Path to Pro Network candidate experience.",
     meta: {
@@ -174,11 +174,11 @@ export const caseStudies: CaseStudy[] = [
     ],
     ctaText: "This is a live product, in active daily use by a team of ~20. The work isn\u2019t finished \u2014 it\u2019s in its second cycle, with a third already visible on the horizon. Want to see where this goes next?",
     ctaButtonLabel: "Let\u2019s talk",
-    nextSlug: "akqaqt",
+    nextSlug: "work/akqaqt",
     nextTitle: "AKQA",
   },
   {
-    slug: "akqaqt",
+    slug: "work/akqaqt",
     title: "AKQA — Unifying the Airline Agent Workflow",
     subtitle: "A streamlined experience for managing creative projects at scale.",
     meta: {
@@ -232,11 +232,11 @@ export const caseStudies: CaseStudy[] = [
         imageSrc: "/images/akqa/annotated-feedback.png",
       },
     ],
-    nextSlug: "cdlxqt",
+    nextSlug: "work/cdlxqt",
     nextTitle: "Cardlytics",
   },
   {
-    slug: "cdlxqt",
+    slug: "work/cdlxqt",
     title: "Cardlytics \u2014 Streamlining Validation for Data Scientists",
     subtitle: "Transforming raw transaction data into actionable marketing insights.",
     meta: {
@@ -298,11 +298,11 @@ export const caseStudies: CaseStudy[] = [
     solutionImages: [
       { src: "/images/cdlx/final-design-screen.png", label: "Validation tool \u2014 queue view" },
     ],
-    nextSlug: "atqt",
+    nextSlug: "work/atqt",
     nextTitle: "Autotrader",
   },
   {
-    slug: "atqt",
+    slug: "work/atqt",
     title: "Autotrader — Improving Filter Discoverability for Car Buyers",
     subtitle: "Helping users find the right car faster through smarter filter design.",
     meta: {
@@ -381,7 +381,7 @@ export const caseStudies: CaseStudy[] = [
       { src: "/images/autotrader/final-design.png", label: "Suggested filters \u2014 final design" },
     ],
     solutionInsertIndex: 4,
-    nextSlug: "homedepot",
+    nextSlug: "work/homedepot",
     nextTitle: "The Home Depot",
   },
 ];
