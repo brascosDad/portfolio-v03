@@ -5,11 +5,41 @@ import { useReducedMotion } from "motion/react";
 import { Beat1Email } from "./Beat1Email";
 import { Beat2OldWay } from "./Beat2OldWay";
 import { Beat3Panel } from "./Beat3Panel";
+import { Interstitial } from "./Interstitial";
 import { StoryState, INITIAL_STORY } from "./StoryStrip";
 import { ReelHud } from "./ReelHud";
-import { COLORS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
+import { COLORS, FONTS, NATIVE_HEIGHT, NATIVE_WIDTH } from "./tokens";
 
-type Phase = "beat1" | "beat2" | "beat3";
+type Phase =
+  | "beat1"
+  | "interstitial-old"
+  | "beat2"
+  | "interstitial-new"
+  | "beat3";
+
+const OLD_WAY_BULLETS = [
+  "Scanning 15 spreadsheets for a single answer",
+  "No way to see multiple artists at once",
+];
+
+const emphasis = { fontWeight: 700, textDecoration: "underline" } as const;
+const NEW_WAY_BULLETS = [
+  <>
+    <span style={emphasis}>1</span> interface to replace{" "}
+    <span style={emphasis}>15</span>
+  </>,
+  "All artists visible at once",
+];
+
+const NEW_WAY_INTRO = "Old way. Couldn't find a slot — let's try something else.";
+
+function formatBeat2Timer(ms: number): string {
+  const clamped = Math.max(0, Math.min(13 * 60 * 1000, ms));
+  const totalSec = Math.floor(clamped / 1000);
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const ss = String(totalSec % 60).padStart(2, "0");
+  return `${mm}:${ss}`;
+}
 
 type Token = { cancelled: boolean };
 
@@ -79,7 +109,18 @@ export function YonasReel() {
       await awaitBeat();
       if (token.cancelled) return;
 
+      setPhase("interstitial-old");
+      await awaitBeat();
+      if (token.cancelled) return;
+
       setPhase("beat2");
+      await awaitBeat();
+      if (token.cancelled) return;
+
+      // Clear the frozen 13:00 timer + "Old way…" toast before the
+      // interstitial — the white screen should be uncluttered.
+      setStory((s) => ({ ...s, timerMs: null, toast: null }));
+      setPhase("interstitial-new");
       await awaitBeat();
       if (token.cancelled) return;
 
@@ -127,10 +168,27 @@ export function YonasReel() {
                 onComplete={handleBeatComplete}
               />
             )}
+            {phase === "interstitial-old" && (
+              <Interstitial
+                heading="The old way"
+                bullets={OLD_WAY_BULLETS}
+                reducedMotion={!!reducedMotion}
+                onComplete={handleBeatComplete}
+              />
+            )}
             {phase === "beat2" && (
               <Beat2OldWay
                 reducedMotion={!!reducedMotion}
                 onStoryUpdate={handleStoryUpdate}
+                onComplete={handleBeatComplete}
+              />
+            )}
+            {phase === "interstitial-new" && (
+              <Interstitial
+                heading="The new way"
+                intro={NEW_WAY_INTRO}
+                bullets={NEW_WAY_BULLETS}
+                reducedMotion={!!reducedMotion}
                 onComplete={handleBeatComplete}
               />
             )}
@@ -140,9 +198,45 @@ export function YonasReel() {
                 onStoryUpdate={handleStoryUpdate}
               />
             )}
+
+            {/* Large countdown timer overlay — Beat 2 only. Renders inside
+                the scaled native canvas so its size scales with the reel. */}
+            {phase === "beat2" && story.timerMs !== null && (
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 110,
+                  display: "flex",
+                  justifyContent: "center",
+                  pointerEvents: "none",
+                  zIndex: 90,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: FONTS.mono,
+                    fontSize: 96,
+                    fontWeight: 700,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "0.04em",
+                    color: "#1a1c1c",
+                    background: "rgba(255,255,255,0.92)",
+                    border: "1px solid rgba(26,28,28,0.18)",
+                    borderRadius: 16,
+                    padding: "12px 32px",
+                    boxShadow: "0 6px 24px rgba(0,0,0,0.18)",
+                  }}
+                >
+                  {formatBeat2Timer(story.timerMs)}
+                </span>
+              </div>
+            )}
           </div>
           <ReelHud
-            timerMs={story.timerMs}
+            timerMs={phase === "beat2" ? null : story.timerMs}
             toast={story.toast}
             showReplay={story.showReplay}
             onReplay={handleReplay}

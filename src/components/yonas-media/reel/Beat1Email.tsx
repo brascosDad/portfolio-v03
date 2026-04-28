@@ -68,6 +68,10 @@ export function Beat1Email({ reducedMotion, onStoryUpdate, onComplete }: Beat1Em
       }
 
       if (cancelled) return;
+      // Let the finished email sit for a beat so the reader actually
+      // takes it in before the white interstitial replaces it.
+      await wait(TIMING.beat1.completedHoldMs);
+      if (cancelled) return;
       setFinished(true);
       await wait(TIMING.beat1.exitFadeMs);
       if (cancelled) return;
@@ -220,7 +224,7 @@ function GmailConversation({
       style={{
         flex: 1,
         overflow: "hidden",
-        padding: "36px 72px",
+        padding: "48px 96px",
         display: "flex",
         flexDirection: "column",
       }}
@@ -230,13 +234,13 @@ function GmailConversation({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          gap: 12,
           color: COLORS.gmailTextSecondary,
-          fontSize: 13,
-          marginBottom: 24,
+          fontSize: 15,
+          marginBottom: 30,
         }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M20 12H4M4 12L10 6M4 12L10 18" stroke={COLORS.gmailTextSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span>Back to Inbox</span>
@@ -246,28 +250,28 @@ function GmailConversation({
       <h3
         style={{
           margin: 0,
-          fontSize: 26,
+          fontSize: 32,
           fontWeight: 400,
           color: COLORS.gmailTextPrimary,
-          marginBottom: 24,
+          marginBottom: 30,
         }}
       >
         {BEAT1_EMAIL.subject}
       </h3>
 
       {/* Sender row */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 28 }}>
         <div
           style={{
-            width: 40,
-            height: 40,
+            width: 50,
+            height: 50,
             borderRadius: "50%",
             background: BEAT1_EMAIL.senderAvatarColor,
             color: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 15,
+            fontSize: 18,
             fontWeight: 600,
             letterSpacing: "0.02em",
           }}
@@ -275,28 +279,28 @@ function GmailConversation({
           {BEAT1_EMAIL.senderInitials}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: COLORS.gmailTextPrimary }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+            <span style={{ fontSize: 18, fontWeight: 600, color: COLORS.gmailTextPrimary }}>
               {BEAT1_EMAIL.senderName}
             </span>
-            <span style={{ fontSize: 13, color: COLORS.gmailTextSecondary }}>
+            <span style={{ fontSize: 15, color: COLORS.gmailTextSecondary }}>
               &lt;{BEAT1_EMAIL.senderEmail}&gt;
             </span>
           </div>
-          <span style={{ fontSize: 13, color: COLORS.gmailTextSecondary }}>
+          <span style={{ fontSize: 15, color: COLORS.gmailTextSecondary }}>
             to {BEAT1_EMAIL.to.split("@")[0]}
           </span>
         </div>
-        <span style={{ fontSize: 13, color: COLORS.gmailTextSecondary }}>{BEAT1_EMAIL.timestamp}</span>
+        <span style={{ fontSize: 15, color: COLORS.gmailTextSecondary }}>{BEAT1_EMAIL.timestamp}</span>
       </div>
 
       {/* Email body */}
       <div
         style={{
-          fontSize: 15,
+          fontSize: 19,
           lineHeight: 1.6,
           color: COLORS.gmailTextPrimary,
-          maxWidth: 840,
+          maxWidth: 1040,
         }}
       >
         {lines.map((line, i) => (

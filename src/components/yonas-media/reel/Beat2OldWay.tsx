@@ -49,14 +49,14 @@ const BEAT2_TOTAL_REAL_MS =
 const MARCEL_HOLD_DWELL_MS = 700;
 // Pause after the focal row unscales back to 1x, before the toast lands.
 const POST_ZOOM_PAUSE_MS = 260;
-// How long the "Old way…" toast holds before the panel starts to exit.
+// Pause after Beat 2's last verdict, before the panel starts to exit.
+// This used to be the dwell for the "Old way…" toast (now relocated to
+// the "The new way" interstitial); the pause stays so pacing holds.
 const OLD_WAY_TOAST_DWELL_MS = 1200;
 // Scale-down + fade exit for the entire Beat 2 panel. This replaces the
 // separate "TransitionCollapse" beat: the real DOM is what animates out,
 // so there's no content swap moment.
 const PANEL_EXIT_MS = 520;
-
-const OLD_WAY_TOAST = "Old way. Couldn't find a slot — let's try something else.";
 
 export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2Props) {
   const [activeTabIdx, setActiveTabIdx] = useState(0);
@@ -129,7 +129,6 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
         timerFrozenRef.current = true;
         onStoryRef.current({
           timerMs: TIMING.beat2.timerTotalMs,
-          toast: OLD_WAY_TOAST,
         });
         await wait(600);
         if (cancelled) return;
@@ -191,9 +190,9 @@ export function Beat2OldWay({ reducedMotion, onStoryUpdate, onComplete }: Beat2P
       await wait(TIMING.beat2.rowScaleMs + POST_ZOOM_PAUSE_MS);
       if (cancelled) return;
 
-      // Slide in the "Old way…" toast. This triggers the panel exit —
-      // the real Beat 2 DOM animates out in place, no content swap.
-      onStoryRef.current({ toast: OLD_WAY_TOAST });
+      // The "Old way…" line used to land here as a HUD toast. It now
+      // lives on the "The new way" interstitial as lead-in copy, so
+      // we just hold briefly before the panel exit to preserve pacing.
       await wait(OLD_WAY_TOAST_DWELL_MS);
       if (cancelled) return;
 

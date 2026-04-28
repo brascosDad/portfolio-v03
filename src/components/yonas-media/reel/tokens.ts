@@ -80,6 +80,9 @@ export const TIMING = {
     pauseLong: 180,
     cursorBlinkMs: 900,
     exitFadeMs: 700,
+    // Hold after typing finishes, before the email fades out and the
+    // "Old way" interstitial takes over.
+    completedHoldMs: 3000,
   },
 
   beat2: {
