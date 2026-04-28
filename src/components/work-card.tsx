@@ -8,6 +8,7 @@ import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { ReelPoster } from "./yonas-media/reel/ReelPoster";
 import { useIsLg } from "@/lib/use-is-lg";
+import { trackPrototypeInteraction } from "@/lib/analytics";
 
 const ApplyFlowPrototype = dynamic(
   () => import("./homedepot/ApplyFlowPrototype").then((m) => m.ApplyFlowPrototype),
@@ -155,7 +156,7 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
   if (media.type === "component" && media.componentId) {
     if (media.componentId === "yonas-reel") {
       return (
-        <div className="w-full">
+        <div className="w-full" onClick={() => trackPrototypeInteraction("yonas")}>
           <YonasBentoView />
         </div>
       );
@@ -167,9 +168,11 @@ function BentoCell({ media }: { media: BentoMediaItem }) {
     if (PHONE_FRAMED_COMPONENTS.has(media.componentId)) {
       return (
         <ResponsivePhone>
-          <PhoneFrame>
-            <Component />
-          </PhoneFrame>
+          <div onClick={() => trackPrototypeInteraction("homedepot")}>
+            <PhoneFrame>
+              <Component />
+            </PhoneFrame>
+          </div>
         </ResponsivePhone>
       );
     }

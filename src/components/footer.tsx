@@ -1,4 +1,7 @@
+"use client";
+
 import { siteData } from "@/data/site";
+import { trackCtaClick } from "@/lib/analytics";
 
 function ArrowUpRight() {
   return (
@@ -32,6 +35,7 @@ export function Footer() {
       </p>
       <a
         href={`mailto:${siteData.email}`}
+        onClick={() => trackCtaClick("home")}
         className="mt-[30px] inline-flex items-center rounded-[16px] bg-accent px-6 py-3 text-[16px] md:text-[18px] lg:text-[20px] font-medium text-white transition-colors hover:bg-accent-hover"
       >
         Send me an email

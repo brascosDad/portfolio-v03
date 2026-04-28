@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { siteData } from "@/data/site";
+import { caseStudySlugToAnalyticsId, trackCtaClick } from "@/lib/analytics";
 
 interface CaseStudyCtaProps {
+  caseStudySlug: string;
   nextSlug?: string;
   nextTitle?: string;
   ctaText?: string;
@@ -9,7 +13,10 @@ interface CaseStudyCtaProps {
   ctaButtonHref?: string;
 }
 
-export function CaseStudyCta({ nextSlug, nextTitle, ctaText, ctaButtonLabel, ctaButtonHref }: CaseStudyCtaProps) {
+export function CaseStudyCta({ caseStudySlug, nextSlug, nextTitle, ctaText, ctaButtonLabel, ctaButtonHref }: CaseStudyCtaProps) {
+  const handleCtaClick = () => {
+    trackCtaClick(caseStudySlugToAnalyticsId(caseStudySlug));
+  };
   return (
     <div className="mt-[80px] border-t border-border pt-[40px]">
       {ctaText ? (
@@ -29,6 +36,7 @@ export function CaseStudyCta({ nextSlug, nextTitle, ctaText, ctaButtonLabel, cta
       <div className="mt-[20px] flex gap-[10px]">
         <a
           href={ctaButtonHref || `mailto:${siteData.email}`}
+          onClick={handleCtaClick}
           className="inline-flex items-center rounded-[16px] bg-accent px-[20px] py-[10px] text-[16px] md:text-[18px] lg:text-[20px] font-medium text-white transition-colors hover:bg-accent-hover"
         >
           {ctaButtonLabel || "Email me"}

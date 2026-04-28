@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { CaseStudyMeta } from "./case-study-meta";
@@ -10,6 +10,7 @@ import { Lightbox } from "./lightbox";
 import { ReelPoster } from "./yonas-media/reel/ReelPoster";
 import { useIsLg } from "@/lib/use-is-lg";
 import { Caption } from "./caption";
+import { caseStudySlugToAnalyticsId, trackPrototypeInteraction, trackScrollDepth } from "@/lib/analytics";
 
 const YonasPrototype = dynamic(
   () => import("./yonas-media/reel").then((m) => m.YonasPrototype),
@@ -51,6 +52,7 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
             background: "#8a8a8c",
             borderRadius: 20,
           }}
+          onClick={() => trackPrototypeInteraction("yonas")}
         >
           {showInteractive ? <YonasPrototype /> : <YonasStatic />}
         </div>
@@ -123,12 +125,52 @@ function MvpToReelDivider() {
 
 export function CaseStudyPage({ study }: CaseStudyPageProps) {
   const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
+  const sentinel50Ref = useRef<HTMLDivElement | null>(null);
+  const sentinel90Ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const analyticsId = caseStudySlugToAnalyticsId(study.slug);
+    const targets = new Map<Element, 50 | 90>();
+    if (sentinel50Ref.current) targets.set(sentinel50Ref.current, 50);
+    if (sentinel90Ref.current) targets.set(sentinel90Ref.current, 90);
+    if (targets.size === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const depth = targets.get(entry.target);
+          if (depth === undefined) continue;
+          trackScrollDepth(analyticsId, depth);
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 },
+    );
+    targets.forEach((_, el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [study.slug]);
 
   // Split title on " — " or " \u2014 " (em dash)
   const displayTitle = study.title.split(/\s[—\u2014]\s/)[1] || study.title;
 
   return (
-    <>
+    <div className="relative">
+      {/* Scroll-depth sentinels — absolutely positioned at 50% and 90%
+          of this wrapper's total height. IntersectionObserver fires
+          once when each enters the viewport. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 w-px h-px"
+        style={{ top: "50%" }}
+        ref={sentinel50Ref}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 w-px h-px"
+        style={{ top: "90%" }}
+        ref={sentinel90Ref}
+      />
       {/* Header */}
       <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[60px] md:pt-[90px] lg:pt-[100px]">
         <p className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
@@ -307,6 +349,7 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
 
         {/* CTA */}
         <CaseStudyCta
+          caseStudySlug={study.slug}
           nextSlug={study.nextSlug}
           nextTitle={study.nextTitle}
           ctaText={study.ctaText}
@@ -322,6 +365,6 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
           onClose={() => setLightboxSrc(null)}
         />
       )}
-    </>
+    </div>
   );
 }
