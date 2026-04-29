@@ -40,7 +40,7 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-bg-primary pt-[20px] md:pt-[160px] lg:pt-[240px] pb-[140px] md:pb-[100px] lg:pb-[100px]"
+      className="w-full bg-bg-primary pt-100 md:pt-[160px] lg:pt-[240px] pb-[140px] md:pb-80 lg:pb-[100px]"
     >
       <div className="relative overflow-visible h-[310px] md:h-[220px] lg:h-[270px] max-w-[1440px] mx-auto">
 
@@ -110,33 +110,39 @@ export function Hero() {
 
         {/* Collaborator — slides right */}
         <motion.span
-          className="absolute font-heading font-black select-none text-[66px] md:text-[96px] lg:text-[120px] left-[10px] md:left-auto md:right-[110px] lg:right-[300px] top-[260px] md:top-[143px] lg:top-[177px]"
+          className="absolute font-heading font-black select-none text-[66px] md:text-[96px] lg:text-[120px] left-[100px] md:left-auto md:right-[20px] lg:right-[210px] top-[260px] md:top-[143px] lg:top-[177px]"
           style={{ ...heroTextStyle, x: slideRight }}
         >
           Collaborator
         </motion.span>
 
         {/* === Info bar — desktop/tablet === */}
-        <div className="hidden md:flex absolute items-end justify-between w-[70%] top-[198px] lg:top-[247px] left-[36px] lg:left-[66px]">
-          <span className="font-sans text-[20px] font-semibold text-text-primary" style={infoTextStyle}>
+        <div className="hidden md:flex absolute items-end justify-between w-[90%] md:w-[88%] lg:w-[88%] top-[201px] lg:top-[250px] left-[36px] lg:left-[66px]">
+          <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
             Ernest Son
           </span>
-          <span className="font-sans text-[20px] font-semibold text-text-primary" style={infoTextStyle}>
-            Lead Designer
+          <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
+            Lead UX Designer
           </span>
-          <span className="font-sans text-[20px] font-semibold text-text-primary" style={infoTextStyle}>
+          <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
+            10 years in B2C &amp; B2B/Enterprise
+          </span>
+          <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
             Atlanta, GA
           </span>
         </div>
 
         {/* === Info bar — mobile (distributed across rows) === */}
-        <span className="md:hidden absolute font-sans text-[16px] font-bold text-text-primary right-[55%] top-[152px]" style={infoTextStyle}>
+        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[152px]" style={infoTextStyle}>
           Ernest Son
         </span>
-        <span className="md:hidden absolute font-sans text-[16px] font-bold text-text-primary right-[55%] top-[188px]" style={infoTextStyle}>
-          Lead Designer
+        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[180px]" style={infoTextStyle}>
+          Lead UX Designer
         </span>
-        <span className="md:hidden absolute font-sans text-[16px] font-bold text-text-primary right-[55%] top-[224px]" style={infoTextStyle}>
+        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[208px] whitespace-nowrap" style={infoTextStyle}>
+          10 yrs · B2C &amp; B2B
+        </span>
+        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[236px]" style={infoTextStyle}>
           Atlanta, GA
         </span>
       </div>

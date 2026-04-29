@@ -51,9 +51,12 @@ src/
 │   ├── globals.css          # Tailwind @theme tokens + global styles
 │   ├── layout.tsx           # Root layout, font loading, Nav
 │   ├── page.tsx             # Home page
+│   ├── about/page.tsx       # About page (full-bleed logo background)
 │   ├── akqaqt/page.tsx      # Case study
 │   ├── cdlxqt/page.tsx      # Case study
-│   └── atqt/page.tsx        # Case study
+│   ├── atqt/page.tsx        # Case study
+│   ├── homedepot/page.tsx   # Case study (password-gated at /homedepot/full)
+│   └── work/yonas-media/page.tsx # Case study
 ├── components/
 │   ├── nav.tsx              # Sticky navigation
 │   ├── hero.tsx             # Hero section with name + bio
@@ -69,6 +72,9 @@ src/
 │   ├── marquee.tsx          # Scrolling text marquee
 │   ├── footer.tsx           # Footer with contact CTA
 │   ├── section-wrapper.tsx  # Reusable section container (max-w-6xl, px-6)
+│   ├── caption.tsx          # Shared left-bordered caption block (bold label + body)
+│   ├── auto-carousel.tsx    # Auto-advancing image carousel with optional per-slide caption + selection badge
+│   ├── lightbox.tsx         # Modal full-size image viewer
 │   └── placeholder-image.tsx # Placeholder for images not yet added
 ├── data/
 │   └── site.ts              # Central site data (name, bio, links)

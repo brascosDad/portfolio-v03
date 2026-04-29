@@ -13,7 +13,7 @@ export function CaseStudyMeta({ meta }: CaseStudyMetaProps) {
   ];
 
   return (
-    <div className="flex gap-[30px] md:gap-[40px] lg:gap-[80px]">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:flex gap-[30px] md:gap-[40px] lg:gap-[80px]">
       {items.map((item) => (
         <div key={item.label}>
           <h4 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium uppercase tracking-wider text-text-muted">

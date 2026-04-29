@@ -14,12 +14,20 @@ function ArrowIcon() {
   );
 }
 
-function LockIcon() {
+const opportunityAreas = ["Onboarding", "Profile building", "Job application"];
+
+function OpportunityChips() {
   return (
-    <svg className="w-[11px] h-[11px] text-[#ccc]" viewBox="0 0 16 16" fill="none">
-      <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
+    <div className="flex items-center justify-center gap-[6px] flex-wrap mt-[10px] mb-[10px]">
+      {opportunityAreas.map((area) => (
+        <span
+          key={area}
+          className="bg-white border border-[#d0d0d0] rounded-full px-[10px] py-[3px] text-[10px] text-[#1a1a1a] whitespace-nowrap"
+        >
+          {area}
+        </span>
+      ))}
+    </div>
   );
 }
 
@@ -152,14 +160,9 @@ export function SprintStructure() {
             <div className="text-[12px] font-medium text-[#1a1a1a] mb-[5px]">
               Opportunity areas identified
             </div>
+            <OpportunityChips />
             <div className="text-[11px] text-[#999] leading-[1.45]">
               Each backed by converging evidence from the current state, competitive landscape, and existing research.
-            </div>
-            <div className="flex items-center justify-center gap-[5px] mt-[12px]">
-              <LockIcon />
-              <span className="text-[10px] text-[#bbb] tracking-[0.03em]">
-                Details available on request
-              </span>
             </div>
           </div>
         </div>
@@ -243,22 +246,19 @@ export function SprintStructure() {
             <div className="text-[12px] font-medium text-[#1a1a1a] mb-[5px]">
               Opportunity areas identified
             </div>
+            <OpportunityChips />
             <div className="text-[11px] text-[#999] leading-[1.45]">
               Each backed by converging evidence from the current state, competitive landscape, and existing research.
-            </div>
-            <div className="flex items-center justify-center gap-[5px] mt-[12px]">
-              <LockIcon />
-              <span className="text-[10px] text-[#bbb] tracking-[0.03em]">
-                Details available on request
-              </span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer line */}
-      <div className="text-[11px] text-[#aaa] mt-[1.25rem] pt-[1rem] border-t border-[#ebebeb] leading-[1.6]">
-        The sprint didn&apos;t produce designs. It produced the right questions — three areas where the evidence was strong enough to prototype and test.
+      <div className="mt-[1.25rem] border-l-2 border-accent py-[10px] px-[14px] rounded-r-[6px] bg-accent/[0.06]">
+        <p className="font-sans text-[12px] md:text-[14px] lg:text-[16px] text-text-primary leading-[1.5]">
+          The sprint didn&apos;t produce designs. It produced the right questions — three areas where the evidence was strong enough to prototype and test.
+        </p>
       </div>
     </div>
   );

@@ -29,6 +29,7 @@ export function Nav() {
           <img src="/logo.svg" alt="Ernest Son" className="w-[20px] h-[20px] md:w-[24px] md:h-[24px] lg:w-[32px] lg:h-[32px]" />
         </Link>
         <div className="flex items-center gap-20 md:gap-30 lg:gap-30 text-[16px] md:text-[18px] lg:text-[20px] font-normal text-text-muted [text-box-trim:both] [text-box-edge:cap_alphabetic] lg:[text-box-trim:none]">
+          <Link href="/about">About</Link>
           <a href={`mailto:${siteData.email}`}>
             Email
             <ArrowUpRight />

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Roboto, Alfa_Slab_One } from "next/font/google";
+import { Hanken_Grotesk, Roboto, Alfa_Slab_One, Space_Grotesk, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Nav } from "@/components/nav";
+import { GA4_MEASUREMENT_ID } from "@/lib/analytics";
 
 const hankenGrotesk = Hanken_Grotesk({
   subsets: ["latin"],
@@ -20,6 +22,18 @@ const alfaSlabOne = Alfa_Slab_One({
   variable: "--font-alpha-slab",
 });
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
   title: "Ernest Son — UX/Product Designer",
   description:
@@ -35,8 +49,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable} ${alfaSlabOne.variable}`}>
+    <html lang="en" className={`${hankenGrotesk.variable} ${roboto.variable} ${alfaSlabOne.variable} ${spaceGrotesk.variable} ${inter.variable}`}>
       <body>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', '${GA4_MEASUREMENT_ID}');
+          `}
+        </Script>
         <Nav />
         <main>{children}</main>
       </body>

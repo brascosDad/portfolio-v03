@@ -1,11 +1,25 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import type { CaseStudy, BentoMediaItem } from "@/lib/types";
 import { CaseStudyMeta } from "./case-study-meta";
 import { CaseStudyBlock } from "./case-study-block";
 import { CaseStudyCta } from "./case-study-cta";
 import { Lightbox } from "./lightbox";
+import { ReelPoster } from "./yonas-media/reel/ReelPoster";
+import { useIsLg } from "@/lib/use-is-lg";
+import { Caption } from "./caption";
+import { caseStudySlugToAnalyticsId, trackPrototypeInteraction, trackScrollDepth } from "@/lib/analytics";
+
+const YonasPrototype = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasPrototype),
+  { ssr: false, loading: () => <ReelPoster /> },
+);
+const YonasStatic = dynamic(
+  () => import("./yonas-media/reel").then((m) => m.YonasStatic),
+  { ssr: false, loading: () => <ReelPoster /> },
+);
 
 interface CaseStudyPageProps {
   study: CaseStudy;
@@ -13,6 +27,7 @@ interface CaseStudyPageProps {
 
 function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const isLg = useIsLg();
 
   const handleEnded = useCallback(() => {
     if (media.loopDelay && videoRef.current) {
@@ -22,30 +37,58 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
     }
   }, [media.loopDelay]);
 
+  if (media.type === "component" && media.componentId === "yonas-reel") {
+    // Below the `lg` breakpoint the interactive prototype is replaced
+    // with a frozen, non-interactive snapshot of the tool — same aspect,
+    // same chrome, no layout shift. Interactivity reads poorly on small
+    // screens and the reel is meant to be explored, not pecked at.
+    const showInteractive = isLg === true;
+    return (
+      <div>
+        <div
+          className="overflow-hidden"
+          style={{
+            border: "15px solid #8a8a8c",
+            background: "#8a8a8c",
+            borderRadius: 20,
+          }}
+          onClick={() => trackPrototypeInteraction("yonas")}
+        >
+          {showInteractive ? <YonasPrototype /> : <YonasStatic />}
+        </div>
+        {label && (
+          <Caption label="Live prototype." className="mt-[1rem]">
+            {label}
+          </Caption>
+        )}
+      </div>
+    );
+  }
+
   if (media.type === "video" && media.src) {
     const hasTransform = media.scale || media.translateY;
     return (
-      <div className="overflow-hidden rounded-md bg-bg-secondary border border-border flex flex-col items-center justify-center px-[30px] pt-[20px] pb-[20px]">
-        <div className="overflow-hidden aspect-video w-full">
-          <video
-            ref={videoRef}
-            autoPlay
-            loop={!media.loopDelay}
-            muted
-            playsInline
-            className="w-full object-cover"
-            style={hasTransform ? {
-              transform: `scale(${media.scale ?? 1}) translateY(${media.translateY ?? 0}px)`,
-            } : undefined}
-            onEnded={media.loopDelay ? handleEnded : undefined}
-          >
-            <source src={media.src} />
-          </video>
+      <div>
+        <div className="overflow-hidden rounded-md bg-bg-secondary border border-border flex flex-col items-center justify-center px-[30px] pt-[20px] pb-[20px]">
+          <div className="overflow-hidden aspect-video w-full">
+            <video
+              ref={videoRef}
+              autoPlay
+              loop={!media.loopDelay}
+              muted
+              playsInline
+              className="w-full object-cover"
+              style={hasTransform ? {
+                transform: `scale(${media.scale ?? 1}) translateY(${media.translateY ?? 0}px)`,
+              } : undefined}
+              onEnded={media.loopDelay ? handleEnded : undefined}
+            >
+              <source src={media.src} />
+            </video>
+          </div>
         </div>
         {label && (
-          <p className="mt-[10px] text-[12px] md:text-[14px] lg:text-[16px] text-text-muted">
-            {label}
-          </p>
+          <Caption className="mt-[1rem]">{label}</Caption>
         )}
       </div>
     );
@@ -66,14 +109,68 @@ function MediaBlock({ media, label }: { media: BentoMediaItem; label?: string })
   return null;
 }
 
+function MvpToReelDivider() {
+  return (
+    <div className="flex items-center justify-between gap-4 py-5">
+      <span className="text-[12px] uppercase tracking-wider whitespace-nowrap text-text-secondary">
+        Initial build <span className="text-text-muted">↑</span>
+      </span>
+      <div className="flex-1 h-px bg-border" />
+      <span className="text-[12px] uppercase tracking-wider whitespace-nowrap text-text-secondary">
+        <span className="text-text-muted">↓</span> Final prototype
+      </span>
+    </div>
+  );
+}
+
 export function CaseStudyPage({ study }: CaseStudyPageProps) {
   const [lightboxSrc, setLightboxSrc] = useState<{ src: string; alt: string } | null>(null);
+  const sentinel50Ref = useRef<HTMLDivElement | null>(null);
+  const sentinel90Ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const analyticsId = caseStudySlugToAnalyticsId(study.slug);
+    const targets = new Map<Element, 50 | 90>();
+    if (sentinel50Ref.current) targets.set(sentinel50Ref.current, 50);
+    if (sentinel90Ref.current) targets.set(sentinel90Ref.current, 90);
+    if (targets.size === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const depth = targets.get(entry.target);
+          if (depth === undefined) continue;
+          trackScrollDepth(analyticsId, depth);
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 },
+    );
+    targets.forEach((_, el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [study.slug]);
 
   // Split title on " — " or " \u2014 " (em dash)
   const displayTitle = study.title.split(/\s[—\u2014]\s/)[1] || study.title;
 
   return (
-    <>
+    <div className="relative">
+      {/* Scroll-depth sentinels — absolutely positioned at 50% and 90%
+          of this wrapper's total height. IntersectionObserver fires
+          once when each enters the viewport. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 w-px h-px"
+        style={{ top: "50%" }}
+        ref={sentinel50Ref}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-0 w-px h-px"
+        style={{ top: "90%" }}
+        ref={sentinel90Ref}
+      />
       {/* Header */}
       <section className="w-full max-w-[1440px] mx-auto px-10 md:px-30 lg:px-60 pt-[60px] md:pt-[90px] lg:pt-[100px]">
         <p className="text-[16px] md:text-[18px] lg:text-[20px] font-semibold uppercase tracking-wider text-text-secondary">
@@ -94,9 +191,13 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
             <h2 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
               The Brief
             </h2>
-            <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-              {study.brief}
-            </p>
+            <div className="mt-[10px] space-y-[16px]">
+              {study.brief.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                  {para}
+                </p>
+              ))}
+            </div>
           </div>
         )}
 
@@ -110,12 +211,59 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
           const insertIdx = study.solutionInsertIndex ?? study.sections.length;
           const preSections = study.sections.slice(0, insertIdx);
           const postSections = study.sections.slice(insertIdx);
+          const mediaIdx = study.mediaInsertIndex;
+          const heroMedia = study.bentoMedia?.[0];
+          const heroMediaLabel =
+            heroMedia?.type === "component" && heroMedia.componentId === "yonas-reel"
+              ? "Pan the calendar, toggle artists, click any date to explore."
+              : "One Tool, One Flow — interaction demo";
+
+          const renderSections = (sections: typeof study.sections, baseIndex: number) => {
+            if (mediaIdx === undefined || !heroMedia) {
+              return sections.map((section, i) => (
+                <CaseStudyBlock key={section.heading} section={section} index={baseIndex + i} />
+              ));
+            }
+            const out: React.ReactNode[] = [];
+            const isYonasReel =
+              heroMedia.type === "component" && heroMedia.componentId === "yonas-reel";
+            sections.forEach((section, i) => {
+              const absoluteIdx = baseIndex + i;
+              if (absoluteIdx === mediaIdx) {
+                if (isYonasReel) {
+                  out.push(<MvpToReelDivider key="__media-insert-divider__" />);
+                }
+                out.push(
+                  <MediaBlock
+                    key="__media-insert__"
+                    media={heroMedia}
+                    label={heroMediaLabel}
+                  />,
+                );
+              }
+              out.push(
+                <CaseStudyBlock key={section.heading} section={section} index={absoluteIdx} />,
+              );
+            });
+            if (mediaIdx === baseIndex + sections.length) {
+              if (isYonasReel) {
+                out.push(<MvpToReelDivider key="__media-insert-divider-tail__" />);
+              }
+              out.push(
+                <MediaBlock
+                  key="__media-insert-tail__"
+                  media={heroMedia}
+                  label={heroMediaLabel}
+                />,
+              );
+            }
+            return out;
+          };
+
           return (
             <>
               <div className="space-y-[60px]">
-                {preSections.map((section, i) => (
-                  <CaseStudyBlock key={section.heading} section={section} index={i} />
-                ))}
+                {renderSections(preSections, 0)}
               </div>
 
               {/* Solution section (optional) */}
@@ -149,21 +297,23 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
 
               {postSections.length > 0 && (
                 <div className="mt-[60px] space-y-[60px]">
-                  {postSections.map((section, i) => (
-                    <CaseStudyBlock key={section.heading} section={section} index={insertIdx + i} />
-                  ))}
+                  {renderSections(postSections, insertIdx)}
                 </div>
               )}
             </>
           );
         })()}
 
-        {/* Animation / video block (only if no solution section) */}
-        {!study.solutionHeading && study.bentoMedia && study.bentoMedia.length > 0 && (
+        {/* Animation / video block (only if no solution section AND no inline media insert) */}
+        {!study.solutionHeading && study.mediaInsertIndex === undefined && study.bentoMedia && study.bentoMedia.length > 0 && (
           <div className="mt-[60px]">
             <MediaBlock
               media={study.bentoMedia[0]}
-              label="One Tool, One Flow — interaction demo"
+              label={
+                study.bentoMedia[0].type === "component" && study.bentoMedia[0].componentId === "yonas-reel"
+                  ? "Pan the calendar, toggle artists, click any date to explore."
+                  : "One Tool, One Flow — interaction demo"
+              }
             />
           </div>
         )}
@@ -188,7 +338,7 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
             </div>
           ) : (
             <div className="mt-[10px] space-y-2">
-              {(study.outcomePoints || [study.outcome]).map((point, i) => (
+              {(study.resultPoints || study.outcomePoints || [study.outcome]).map((point, i) => (
                 <p key={i} className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
                   {point}
                 </p>
@@ -199,6 +349,7 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
 
         {/* CTA */}
         <CaseStudyCta
+          caseStudySlug={study.slug}
           nextSlug={study.nextSlug}
           nextTitle={study.nextTitle}
           ctaText={study.ctaText}
@@ -214,6 +365,6 @@ export function CaseStudyPage({ study }: CaseStudyPageProps) {
           onClose={() => setLightboxSrc(null)}
         />
       )}
-    </>
+    </div>
   );
 }

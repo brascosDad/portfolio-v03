@@ -24,5 +24,5 @@ export async function verifyPassword(formData: FormData) {
     path: "/",
   });
 
-  redirect("/homedepot/full");
+  redirect("/work/homedepot/full");
 }

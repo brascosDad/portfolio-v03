@@ -1,10 +1,30 @@
 "use client";
 
-import { useRef, useCallback, useState } from "react";
+import { Fragment, useRef, useCallback, useState } from "react";
 import dynamic from "next/dynamic";
 import type { CaseStudySection } from "@/lib/types";
 import { PlaceholderImage } from "./placeholder-image";
 import { Lightbox } from "./lightbox";
+import { AutoCarousel } from "./auto-carousel";
+
+// Renders body copy with minimal inline markup support. Splits on
+// <em>…</em> tokens and produces real <em> elements so prose like
+// "but not <em>where</em> in that experience" can emphasize a single
+// word without promoting the whole body string to rich text.
+function renderBody(text: string) {
+  const parts = text.split(/(<em>[^<]*<\/em>)/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^<em>([^<]*)<\/em>$/);
+    if (match) {
+      return (
+        <em key={i} className="italic">
+          {match[1]}
+        </em>
+      );
+    }
+    return <Fragment key={i}>{part}</Fragment>;
+  });
+}
 
 const CompetitiveGrid = dynamic(
   () => import("./homedepot/CompetitiveGrid").then((m) => m.CompetitiveGrid),
@@ -15,8 +35,14 @@ const SprintStructure = dynamic(
 const PrototypesShowcase = dynamic(
   () => import("./homedepot/PrototypesShowcase").then((m) => m.PrototypesShowcase),
 );
+const OnboardingWireframes = dynamic(
+  () => import("./homedepot/OnboardingWireframes").then((m) => m.OnboardingWireframes),
+);
 const JourneyMaps = dynamic(
   () => import("./yonas-media/JourneyMaps").then((m) => m.JourneyMaps),
+);
+const YonasMvpTable = dynamic(
+  () => import("./yonas-media/YonasMvpTable").then((m) => m.YonasMvpTable),
 );
 
 const customComponentMap: Record<string, React.ComponentType> = {
@@ -24,6 +50,11 @@ const customComponentMap: Record<string, React.ComponentType> = {
   "sprint-structure": SprintStructure,
   "prototypes": PrototypesShowcase,
   "journey-maps": JourneyMaps,
+  "yonas-mvp-table": YonasMvpTable,
+};
+
+const inlineComponentMap: Record<string, React.ComponentType> = {
+  "onboarding-wireframes": OnboardingWireframes,
 };
 
 interface CaseStudyBlockProps {
@@ -53,50 +84,113 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
   // Custom component layout: full-width stacked
   if (section.customComponent) {
     const CustomComponent = customComponentMap[section.customComponent];
-    return (
+
+    const textColumn = (maxWidthClass: string) => (
       <>
-        <div>
-          {section.subtitle && (
-            <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-secondary italic mb-[4px]">
-              {section.subtitle}
-            </p>
-          )}
-          <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
-            {section.heading}
-          </h3>
-          <div className="mt-[16px] max-w-[720px]">
-            <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-              {section.body}
-            </p>
-            {section.bodyExtra && (
-              <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-                {section.bodyExtra}
-              </p>
-            )}
-          </div>
-          {CustomComponent && (
-            <div className="mt-[30px]">
-              <CustomComponent />
-            </div>
-          )}
-          {section.gateBlock && (
-            <div className="mt-[40px] rounded-md border border-border bg-bg-secondary p-[24px] md:p-[30px] flex items-start gap-[16px]">
-              <svg className="w-[20px] h-[20px] text-text-muted flex-shrink-0 mt-[2px]" viewBox="0 0 16 16" fill="none">
-                <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
-                <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-              </svg>
-              <div>
-                <p className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
-                  {section.gateBlock.heading}
-                </p>
-                <p className="mt-[8px] text-[14px] md:text-[16px] text-text-muted leading-snug">
-                  {section.gateBlock.body}
-                </p>
-              </div>
-            </div>
-          )}
+        {section.subtitle && (
+          <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-secondary italic mb-[4px]">
+            {section.subtitle}
+          </p>
+        )}
+        <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+          {section.heading}
+        </h3>
+        <div className={`mt-[16px] ${maxWidthClass}`}>
+          <p className="text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+            {renderBody(section.body)}
+          </p>
+          {(() => {
+            const inline = section.inlineComponent;
+            const InlineComponent = inline ? inlineComponentMap[inline.id] : undefined;
+            const paragraphs = section.bodyExtra ? section.bodyExtra.split(/\n\n+/) : [];
+            return (
+              <>
+                {InlineComponent && inline?.afterParagraph === 0 && <InlineComponent />}
+                {paragraphs.map((para, i) => (
+                  <Fragment key={i}>
+                    <p className="mt-[16px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+                      {renderBody(para)}
+                    </p>
+                    {InlineComponent && inline?.afterParagraph === i + 1 && <InlineComponent />}
+                  </Fragment>
+                ))}
+              </>
+            );
+          })()}
         </div>
+        {section.gateBlock && (
+          <div className="mt-[40px] rounded-md border border-border bg-bg-secondary p-[24px] md:p-[30px] flex items-start gap-[16px]">
+            <svg className="w-[20px] h-[20px] text-text-muted flex-shrink-0 mt-[2px]" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="7" width="12" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+              <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+            </svg>
+            <div>
+              <p className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+                {section.gateBlock!.heading}
+              </p>
+              <p className="mt-[8px] text-[14px] md:text-[16px] text-text-muted leading-snug">
+                {section.gateBlock!.body}
+              </p>
+            </div>
+          </div>
+        )}
       </>
+    );
+
+    if (section.customComponentLayout === "side-by-side") {
+      return (
+        <div className="grid gap-[30px] md:grid-cols-2 md:items-center md:gap-[60px]">
+          <div className={isReversed ? "md:order-2" : ""}>
+            {textColumn("")}
+          </div>
+          <div className={isReversed ? "md:order-1" : ""}>
+            {CustomComponent && <CustomComponent />}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        {textColumn("max-w-[720px]")}
+        {CustomComponent && (
+          <div className="mt-[30px]">
+            <CustomComponent />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Text-only path: section provides no media, so render full-width
+  // prose instead of a 2-col layout with an empty right column.
+  const hasMedia =
+    !!section.imageSrc ||
+    !!section.videoSrc ||
+    !!section.imageLabel ||
+    (section.images && section.images.length > 0) ||
+    (section.imageCarousel && section.imageCarousel.length > 0) ||
+    (section.quotes && section.quotes.length > 0);
+
+  if (!hasMedia) {
+    const extraParagraphs = section.bodyExtra ? section.bodyExtra.split(/\n\n+/) : [];
+    return (
+      <div>
+        <h3 className="text-[16px] md:text-[18px] lg:text-[20px] font-medium text-text-primary">
+          {section.heading}
+        </h3>
+        <p className="mt-[10px] max-w-[720px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
+          {renderBody(section.body)}
+        </p>
+        {extraParagraphs.map((para, i) => (
+          <p
+            key={i}
+            className="mt-[16px] max-w-[720px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug"
+          >
+            {renderBody(para)}
+          </p>
+        ))}
+      </div>
     );
   }
 
@@ -145,6 +239,17 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
             <source src={section.videoSrc} />
           </video>
         </div>
+      );
+    }
+
+    // Auto-playing crossfade carousel
+    if (section.imageCarousel && section.imageCarousel.length > 0) {
+      return (
+        <AutoCarousel
+          images={section.imageCarousel}
+          aspectClass="aspect-[4/5]"
+          fit={section.imageCarouselFit ?? "cover"}
+        />
       );
     }
 
@@ -202,7 +307,7 @@ export function CaseStudyBlock({ section, index }: CaseStudyBlockProps) {
             {section.heading}
           </h3>
           <p className="mt-[10px] text-[16px] md:text-[18px] lg:text-[20px] text-text-muted leading-snug">
-            {section.body}
+            {renderBody(section.body)}
           </p>
         </div>
         <div className={isReversed ? "md:order-1" : ""}>
