@@ -68,7 +68,7 @@ export const caseStudies: CaseStudy[] = [
       projectType: "Enterprise",
       year: "2026",
     },
-    brief: "I wasn\u2019t handed this project \u2014 I went looking for it. The goal was to find a real company with a real problem and solve it end-to-end: define what to build, design it, and build it.\n\nYonas Media manages roughly 15 active touring artists. Their booking operation ran across 15 individual Google Sheets, a CRM with 9,000+ venue records disconnected from the booking calendar, and verbal handoffs between three core team members.\n\nAfter an introductory meeting with Ben, I constructed a brief with a clear goal: establish a consolidated live view of every artist, their availability, booking status, and venue data \u2014 built for how the team worked.",
+    brief: "I wasn\u2019t handed this project \u2014 I went looking for it. The goal was to find a real company with a real problem and solve it end-to-end: define what to build, design it, and build it.\n\nYonas Media manages roughly 15 active touring artists. Their booking operation ran across 15 individual Google Sheets, a CRM with 9,000+ venue records disconnected from the booking calendar, and verbal handoffs between three core team members.\n\nAfter an introductory meeting with Ben (business owner), I constructed a brief with a clear goal: establish a consolidated live view of every artist, their availability, booking status, and venue data \u2014 built for how the team worked.",
     problem: "15 spreadsheets, a disconnected CRM, and email handoffs \u2014 no single person could see the full booking picture",
     outcome: "Booking inquiry time: 13 min \u2192 1 min 10 sec. Contract entry time: 1 min 15 sec \u2192 ~5 sec. Live and in active daily use.",
     problemPoints: [
