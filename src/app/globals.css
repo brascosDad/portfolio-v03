@@ -85,37 +85,38 @@ a:hover {
    image's natural aspect is 1:1.164). Horizontal full pan = -133.3%.
    Vertical row stops are -200% × row_fraction; max practical Y is
    ~-128% (image bottom flush with container bottom). */
+/* Image is rendered at w-[200%] — twice the container width — so the
+   pan animation just translates; no transform scale. The image
+   overflows the container by exactly 50% on each axis, so translate
+   percentages live in the [0, -50%] range. The sequence walks Ben's
+   journey row by row, then loops smoothly back to the start. */
 @keyframes journeyMapPan {
   /* Top header row, top-left — Ben + first column */
-  0%   { transform: translate(0, 0) scale(2); }
+  0%   { transform: translate(0, 0); }
   /* Pan right across the top row — scenario, time cost, status, date */
-  21%  { transform: translate(-133.3%, 0) scale(2); }
-  /* Back to the left, drop to actions row */
-  28%  { transform: translate(0, -30%) scale(2); }
-  /* Down to touchpoints */
-  35%  { transform: translate(0, -60%) scale(2); }
-  /* Down to thinking & feeling */
-  42%  { transform: translate(0, -90%) scale(2); }
-  /* Quick pan right across thinking & feeling — emotional experience */
-  64%  { transform: translate(-133.3%, -90%) scale(2); }
-  /* Back to the left, drop to pain points */
-  71%  { transform: translate(0, -110%) scale(2); }
-  /* Down to opportunities (image bottom flush with container bottom) */
-  85%  { transform: translate(0, -128%) scale(2); }
-  /* Hold on opportunities, still zoomed-in */
-  100% { transform: translate(0, -128%) scale(2); }
+  20%  { transform: translate(-50%, 0); }
+  /* Scroll back to the left edge */
+  26%  { transform: translate(0, 0); }
+  /* Slowly scroll down through each row, stopping on the row label */
+  39%  { transform: translate(0, -12%); }   /* Actions */
+  52%  { transform: translate(0, -23%); }   /* Touchpoints */
+  65%  { transform: translate(0, -35%); }   /* Thinking & feeling */
+  78%  { transform: translate(0, -42%); }   /* Pain points */
+  90%  { transform: translate(0, -50%); }   /* Opportunities — bottom flush */
+  /* Smooth return to the top so the loop has no jump */
+  100% { transform: translate(0, 0); }
 }
 
 .journey-map-pan {
   transform-origin: top left;
-  animation: journeyMapPan 36s ease-in-out forwards;
+  animation: journeyMapPan 36s ease-in-out infinite;
   will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .journey-map-pan {
     animation: none;
-    transform: translate(0, 0) scale(2);
+    transform: translate(0, 0);
     transform-origin: top left;
   }
 }

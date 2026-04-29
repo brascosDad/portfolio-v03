@@ -19,12 +19,12 @@ export function JourneyMaps() {
           type="button"
           aria-label="Open journey map at full size"
           onClick={() => setLightboxOpen(true)}
-          className="relative w-full aspect-[4/5] overflow-hidden rounded-lg border border-border bg-bg-secondary cursor-zoom-in block"
+          className="relative w-full max-w-[640px] aspect-[1/1.164] overflow-hidden rounded-lg border border-border bg-bg-secondary cursor-zoom-in block"
         >
           <img
             src={map.src}
             alt={map.alt}
-            className="absolute top-0 left-0 w-[150%] max-w-none h-auto journey-map-pan"
+            className="absolute top-0 left-0 w-[200%] max-w-none h-auto journey-map-pan"
             draggable={false}
           />
           <span
