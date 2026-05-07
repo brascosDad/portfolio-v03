@@ -1,74 +1,42 @@
 # Portfolio v03 — Session Status
 
-Last updated: 2026-04-28
-Branch: `feature/yonas-hero-reel`
+Last updated: 2026-05-07
+Branch: `main`
 
 ## What changed this session
 
-All work focused on the Yonas Media case study (`/work/yonas-media`), plus a global caption-style consistency pass and supporting infrastructure.
+Polish pass on the homepage hero and global nav, both targeted at the 375px breakpoint.
 
-### 1. Yonas role label
-`src/data/case-studies.ts` — Yonas meta `role` updated:
-- "Designer + Developer + Strategist" → "Solo Designer, Developer & Project Lead"
+### 1. Hero info bar — desktop/tablet
+`src/components/hero.tsx` — reworked positioning of the four-segment info row (Ernest Son · Lead UX Designer · 10 years in B2C & B2B/Enterprise · Atlanta, GA).
 
-### 2. New shared `Caption` component
-- `src/components/caption.tsx` — left-bordered, accent-tinted caption block (`border-l-2 border-accent`, `bg-accent/[0.06]`, `rounded-r-[6px]`). Optional bold `label` inline with the body text.
-- Adopted on the live-prototype caption (`case-study-page.tsx`), the video MediaBlock caption (pulled out of the video frame so it isn't double-bordered), `JourneyMaps`, the Home Depot `PrototypesShowcase`, and per-slide carousel captions.
-- `SprintStructure` and `CompetitiveGrid` already used the same inline classes — left as-is.
+- Anchored to the top of the hero block (`top-[33px]`) so it cap-aligns with the "Innovator" / "Researcher" row instead of sitting at the bottom.
+- Left offset is now tied to the cafe photo's right edge: `left-[220px]` (md) / `left-[290px]` (lg), with a matching `right-[36px] / right-[66px]` so the four spans distribute across the remaining width via `justify-between`. Percentage-based offsets didn't clear the photo at every breakpoint because the photo is fixed-size per breakpoint.
+- `z-30` keeps the row above the big role words and the photos so they animate underneath without clipping.
 
-### 3. Sketch carousel — captions + reorder
-"Built Around How They Think" sketches now appear in the order Calendar-first → Date-first → Venue, each with a bold-label caption rendered via the AutoCarousel's per-slide caption support.
+### 2. Hero info bar — mobile (< md)
+- Replaced four absolutely-positioned spans (each with its own `top-[…]`) with a single right-justified flex column at `right-[10px] bottom-[230px]`.
+- `bottom-[230px]` is computed from the hero container height minus "Innovator"'s top offset (310 − 80) so the cap-alphabetic baseline of the last info line meets Innovator's cap-top.
+- `gap-10` condenses the previously 28px stack.
 
-### 4. Visual direction carousel — badge + caption
-- Per-slide selection badge (✓ Selected direction / ✗ Not selected) in the top-right of the image earlier, then moved to a centered row directly below the image (above the caption block) per design feedback. Dots stay inside the image at bottom-center.
-- Per-slide bold-label caption (Neo-Swiss / Cyber-Tactical / Refined Industrial) rendered in the new shared Caption style.
-- AutoCarousel default dwell extended to 8s when any slide has a caption (3.5s otherwise).
+### 3. Global nav — 375px breathing room
+`src/components/nav.tsx` — small spacing tweak so the nav reads cleaner at the 375 minimum width.
 
-### 5. AutoCarousel infra
-`src/components/auto-carousel.tsx` — `imageCarousel` items now accept optional `selected: boolean` and `caption: { label, body }` fields. Captions stack in a single grid cell (so block height matches the tallest caption — no layout jump on swap). Badge crossfades on slide change via Framer Motion `AnimatePresence`.
-
-### 6. Journey map — F-pattern pan + lightbox
-`src/components/yonas-media/JourneyMaps.tsx` rewritten:
-- Portrait container (`aspect-[4/5]`), image at `w-[150%]` with `max-w-none` so Tailwind preflight's `img { max-width: 100% }` doesn't cap the override.
-- F-pattern CSS keyframe animation (`journeyMapPan` in `globals.css`): top header L→R → step down through actions / touchpoints / thinking & feeling → pan right across thinking & feeling for the emotional column → step down through pain points → opportunities → hold. Held at `scale(2)` throughout (no zoom-out at the end). 36s total duration, `ease-in-out`.
-- `prefers-reduced-motion` users see the top-left static state.
-- Click anywhere on the container opens the lightbox at full size (replaced the previous inline-expand pattern).
-- Caption beneath via the new Caption component.
-
-### 7. `customComponentLayout` field on `CaseStudySection`
-- Added `customComponentLayout?: "stacked" | "side-by-side"` to `src/lib/types.ts`.
-- `case-study-block.tsx` extended: when set to `"side-by-side"`, the section renders heading/body/bodyExtra in one column and the custom component in the other (using the same alternating left/right logic as image sections).
-- "The Hidden Cost" uses this flag so the journey map sits in a 2-col row alongside the body copy instead of full-width-stacked.
-
-### 8. Section copy — bodyExtra additions
-- "Built to Be Used" — added a paragraph on the column-reduction tradeoff (Google Sheets had 8–10 columns, simplification meant pushback but cognitive load was the real cost).
-- "A New Baseline" — added a paragraph on the post-launch date-range adjustment (eleventh-hour but unsurprising).
-- `case-study-block.tsx` text-only path now renders `bodyExtra` paragraphs (the custom-component path already did).
-
-### 9. Tailwind preflight gotcha (worth remembering)
-Tailwind preflight applies `img { max-width: 100% }`, which silently caps any `w-[NNN%]` set via utility class. When you need an `<img>` larger than its container (e.g., for a pan-zoom animation), add `max-w-none` alongside the width utility.
-
-### 10. Home-page work card tweaks
-- Home Depot `outcomePoints[1]`: "Candidate confidence improved from 1 to 4 out of 5" → "Application confidence improved from 1 to 4 (out of 5)".
-- Yonas Media: added `aiTools: ["Claude Code", "Claude"]` so the existing `WorkCard` AI-tool badges render two pills ("Claude Code", "Claude") under the title — matching the HD card pattern.
+- ArrowUpRight icon now uses `ml-[5px]` at base (was `ml-[3px]`), so Email/LinkedIn/Resume have enough gap between text and the up-right arrow.
+- Nav-link container uses `gap-20` at base (was `gap-10`); `md`/`lg` unchanged at `gap-30`.
 
 ## Files touched
-- `src/lib/types.ts`
-- `src/data/case-studies.ts`
-- `src/components/caption.tsx` (new)
-- `src/components/case-study-block.tsx`
-- `src/components/case-study-page.tsx`
-- `src/components/auto-carousel.tsx`
-- `src/components/yonas-media/JourneyMaps.tsx`
-- `src/components/homedepot/PrototypesShowcase.tsx`
-- `src/app/globals.css`
-- `CLAUDE.md`
-- `STATUS.md`
+
+- `src/components/hero.tsx` — info bar restructure (desktop + mobile)
+- `src/components/nav.tsx` — 375px spacing
+- `CLAUDE.md` — typography section corrected (Hanken Grotesk, not Tektur/SUSE), project structure refreshed (case studies under `/work/`, `homedepot/` and `yonas-media/` component subdirs, additional `data/` and `lib/` files), `rounded-lg` corrected to 30px to match `globals.css` and `DESIGN_SYSTEM.md`
+- `STATUS.md` — this file
 
 ## Branch state
-- All changes verified with `npm run build` (clean).
-- Untracked `package-lock 2.json` at project root — accidental, **not committed**, consider deleting.
+
+- All changes verified visually in `npm run dev` at 375 / md / lg.
+- About to commit and push to `origin/main`.
 
 ## Up next
-- Pick which row/column percentages need nudging on the journey map after viewing in dev.
-- Decide whether to roll the Caption refactor into `SprintStructure` and `CompetitiveGrid` for code consistency (they already match visually).
+
+- No outstanding pending decisions from this session.

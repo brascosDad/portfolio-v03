@@ -117,7 +117,12 @@ export function Hero() {
         </motion.span>
 
         {/* === Info bar — desktop/tablet === */}
-        <div className="hidden md:flex absolute items-end justify-between w-[90%] md:w-[88%] lg:w-[88%] top-[201px] lg:top-[250px] left-[36px] lg:left-[66px]">
+        {/* DECISION: left offset is tied to the cafe photo's right edge (198px on md, 270px on lg)
+           plus ~20px breathing, instead of a uniform "1/6 of viewport" — percentage values don't
+           clear the photo at every breakpoint because the photo is fixed-size per breakpoint.
+           Top-aligned with "Innovator" / "Researcher" at top-[33px]; z-30 keeps the row above the
+           big words and the photos so they animate underneath. */}
+        <div className="hidden md:flex absolute z-30 items-start justify-between top-[33px] left-[220px] lg:left-[290px] right-[36px] lg:right-[66px]">
           <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
             Ernest Son
           </span>
@@ -132,19 +137,15 @@ export function Hero() {
           </span>
         </div>
 
-        {/* === Info bar — mobile (distributed across rows) === */}
-        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[152px]" style={infoTextStyle}>
-          Ernest Son
-        </span>
-        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[180px]" style={infoTextStyle}>
-          Lead UX Designer
-        </span>
-        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[208px] whitespace-nowrap" style={infoTextStyle}>
-          10 yrs · B2C &amp; B2B
-        </span>
-        <span className="md:hidden absolute font-sans text-[14px] font-bold text-text-primary right-[55%] top-[236px]" style={infoTextStyle}>
-          Atlanta, GA
-        </span>
+        {/* === Info bar — mobile (right-justified; bottom aligns with cap-top of "Innovator") === */}
+        {/* bottom-[230px] = h-[310px] − Innovator's top-[80px], so the cap-alphabetic baseline of
+           the last line meets Innovator's cap-top. gap-5 condenses the previously 28px stack. */}
+        <div className="md:hidden absolute z-30 right-[10px] bottom-[230px] flex flex-col items-end gap-10 font-sans text-[14px] font-bold text-text-primary">
+          <span style={infoTextStyle}>Ernest Son</span>
+          <span style={infoTextStyle}>Lead UX Designer</span>
+          <span className="whitespace-nowrap" style={infoTextStyle}>10 yrs · B2C &amp; B2B</span>
+          <span style={infoTextStyle}>Atlanta, GA</span>
+        </div>
       </div>
     </section>
   );

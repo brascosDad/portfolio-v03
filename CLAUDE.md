@@ -33,53 +33,62 @@ This project uses Tailwind v4's CSS-first approach. All design tokens live in `s
 
 ### Typography
 
-- **Tektur** (`font-display`) — Display font. Used ONLY for the name/logo. Do NOT apply to general headings.
-- **SUSE** (`font-sans`) — Default for everything: headings, body text, UI elements.
-- Fonts are loaded via `next/font/google` in `layout.tsx` with CSS variables `--font-tektur` and `--font-suse`.
+- **Hanken Grotesk** is the single typeface for the whole site. All three font tokens (`font-display`, `font-sans`, `font-heading`) alias to it via `--font-hanken`.
+- Loaded in `layout.tsx` via `next/font/google` (`Hanken_Grotesk`). A few additional families (Roboto, Alfa Slab One, Space Grotesk, Inter) are also wired up as CSS variables for ad-hoc use, but the design system defaults to Hanken Grotesk everywhere.
+- Do NOT apply `font-display` to general headings. It's reserved for the name/logo treatment in case it's ever swapped to a distinct display face.
 
 ### Radii
 
 - `rounded-sm` (10px) — buttons, small elements
 - `rounded-md` (20px) — cards, containers
-- `rounded-lg` (24px) — hero images, large elements
+- `rounded-lg` (30px) — hero images, large elements
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── globals.css          # Tailwind @theme tokens + global styles
-│   ├── layout.tsx           # Root layout, font loading, Nav
-│   ├── page.tsx             # Home page
-│   ├── about/page.tsx       # About page (full-bleed logo background)
-│   ├── akqaqt/page.tsx      # Case study
-│   ├── cdlxqt/page.tsx      # Case study
-│   ├── atqt/page.tsx        # Case study
-│   ├── homedepot/page.tsx   # Case study (password-gated at /homedepot/full)
-│   └── work/yonas-media/page.tsx # Case study
+│   ├── globals.css                  # Tailwind @theme tokens + global styles
+│   ├── layout.tsx                   # Root layout, font loading, Nav, GA4
+│   ├── page.tsx                     # Home page
+│   ├── about/page.tsx               # About page (full-bleed logo background)
+│   └── work/                        # All case studies live under /work/
+│       ├── akqaqt/page.tsx
+│       ├── atqt/page.tsx
+│       ├── cdlxqt/page.tsx
+│       ├── homedepot/page.tsx       # Password-gated full version at /work/homedepot/full
+│       └── yonas-media/page.tsx
 ├── components/
-│   ├── nav.tsx              # Sticky navigation
-│   ├── hero.tsx             # Hero section with name + bio
-│   ├── work-section.tsx     # Case study grid
-│   ├── work-card.tsx        # Individual case study card
-│   ├── case-study-page.tsx  # Case study detail layout
-│   ├── case-study-block.tsx # Content block within case study
-│   ├── case-study-meta.tsx  # Meta sidebar (company, role, etc.)
-│   ├── case-study-cta.tsx   # Bottom CTA on case studies
-│   ├── experience.tsx       # Work experience list
-│   ├── hardware-section.tsx # Hardware/tools grid
-│   ├── hardware-card.tsx    # Individual hardware card
-│   ├── marquee.tsx          # Scrolling text marquee
-│   ├── footer.tsx           # Footer with contact CTA
-│   ├── section-wrapper.tsx  # Reusable section container (max-w-6xl, px-6)
-│   ├── caption.tsx          # Shared left-bordered caption block (bold label + body)
-│   ├── auto-carousel.tsx    # Auto-advancing image carousel with optional per-slide caption + selection badge
-│   ├── lightbox.tsx         # Modal full-size image viewer
-│   └── placeholder-image.tsx # Placeholder for images not yet added
+│   ├── nav.tsx                      # Sticky navigation
+│   ├── hero.tsx                     # Hero section: stacked role words + info bar
+│   ├── work-section.tsx             # Case study grid
+│   ├── work-card.tsx                # Individual case study card
+│   ├── case-study-page.tsx          # Case study detail layout
+│   ├── case-study-block.tsx         # Content block within case study
+│   ├── case-study-meta.tsx          # Meta sidebar (company, role, etc.)
+│   ├── case-study-cta.tsx           # Bottom CTA on case studies
+│   ├── experience.tsx               # Work experience list
+│   ├── hardware-section.tsx         # Hardware/tools grid
+│   ├── hardware-card.tsx            # Individual hardware card
+│   ├── marquee.tsx                  # Scrolling text marquee
+│   ├── footer.tsx                   # Footer with contact CTA
+│   ├── section-wrapper.tsx          # Reusable section container
+│   ├── caption.tsx                  # Shared left-bordered caption block (bold label + body)
+│   ├── auto-carousel.tsx            # Auto-advancing carousel with per-slide caption + selection badge
+│   ├── lightbox.tsx                 # Modal full-size image viewer
+│   ├── placeholder-image.tsx
+│   ├── homedepot/                   # HD-specific blocks (sprint structure, prototypes, etc.)
+│   └── yonas-media/                 # Yonas-specific blocks (journey maps, MVP table, reel/)
 ├── data/
-│   └── site.ts              # Central site data (name, bio, links)
+│   ├── site.ts                      # Site-wide data (name, email, links)
+│   ├── case-studies.ts              # Case study meta/sections
+│   ├── experience.ts
+│   ├── hardware.ts
+│   └── skills.ts
 └── lib/
-    └── types.ts             # Shared TypeScript interfaces
+    ├── types.ts                     # Shared TypeScript interfaces
+    ├── analytics.ts                 # GA4 helpers + measurement ID
+    └── use-is-lg.ts                 # Hook for lg-breakpoint media query
 ```
 
 ## Conventions
