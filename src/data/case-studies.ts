@@ -35,6 +35,10 @@ export const caseStudies: CaseStudy[] = [
     ],
     sections: [
       {
+        heading: "Earlier on Pro Network",
+        body: "Before this sprint, I simplified the Pro Network landing page: a stronger call to action, quick search, and a clearer hierarchy on the candidate cards. The data science team compared revenue before and after the changes and measured a $6M lift.",
+      },
+      {
         heading: "Reading the Landscape",
         body: "With a stale product and a backlog of unresolved research, one thing missing was an understanding of how competitors were serving candidates in the trades space. I mapped what they were doing across navigation, search, profile building, and job posting quality. I also used NotebookLM to collect and synthesize all existing research \u2014 asking questions of it quickly rather than combing through documents manually.",
         customComponent: "competitive-grid",
