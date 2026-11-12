@@ -78,6 +78,12 @@ function BottomCardBody({ className }: { className?: string }) {
         find that genuinely exciting.
       </p>
       <p>
+        I design systems that people and AI agents can both follow. The rules
+        come from watching how people actually work. Tests make sure the rules
+        are followed. And I build enough of the product myself to know where
+        the rules break.
+      </p>
+      <p>
         When I&apos;m not at my desk, you&apos;ll find me on a tennis court or
         soccer field near Candler Park. On weekends, my family and I love to go
         hiking or just get the dogs out for a run. For a wind-down, I&apos;ll
