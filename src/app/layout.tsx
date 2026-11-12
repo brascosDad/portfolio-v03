@@ -35,9 +35,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Ernest Son — UX/Product Designer",
+  title: "Ernest Son — Lead Product Designer",
   description:
-    "Portfolio of Ernest Son, a UX/Product Designer crafting thoughtful digital experiences.",
+    "Portfolio of Ernest Son, a Lead Product Designer who designs systems that people and AI agents can both follow.",
   icons: {
     icon: "/logo.svg",
   },

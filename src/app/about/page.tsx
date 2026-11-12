@@ -5,7 +5,7 @@ import { siteData } from "@/data/site";
 export const metadata: Metadata = {
   title: "About — Ernest Son",
   description:
-    "Ernest Son — Lead UX Designer in Atlanta, GA. From mechanical engineering to product design.",
+    "Ernest Son — Lead Product Designer in Atlanta, GA. From mechanical engineering to product design.",
 };
 
 const EMAIL_HREF = `mailto:${siteData.email}`;
@@ -27,7 +27,7 @@ function NameTitleBlock() {
         Ernest Son
       </p>
       <p className="font-sans text-[16px] leading-snug mt-5">
-        <span className="font-semibold">Lead UX Designer</span>
+        <span className="font-semibold">Lead Product Designer</span>
         <span className="mx-5">·</span>
         Atlanta, GA
       </p>

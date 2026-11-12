@@ -7,7 +7,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "Identifying and validating opportunity areas for the Path to Pro Network candidate experience.",
     meta: {
       company: "The Home Depot",
-      role: "Lead UX Designer",
+      role: "Staff UX Designer (Contract)",
       projectType: "B2B2C \u00b7 Mobile, Web",
       year: "2025\u20132026",
     },
@@ -25,7 +25,7 @@ export const caseStudies: CaseStudy[] = [
     resultPoints: [
       "Onboarding time on task reduced by 65%",
       "Candidate confidence in the job application flow improved from 1 (not confident) to 4 (very confident) out of 5",
-      "All 3 directions moved from discovery into development",
+      "All 3 directions moved into the FY26 roadmap",
     ],
     aiTools: ["NotebookLM", "Gemini", "Figma Make"],
     bentoLayout: "side-by-side",
@@ -52,7 +52,7 @@ export const caseStudies: CaseStudy[] = [
         customComponent: "prototypes",
       },
     ],
-    ctaText: "This project is under active development at The Home Depot. A full walkthrough \u2014 including the sprint findings, prototype approaches, and usability results \u2014 is available on request.",
+    ctaText: "This work moved into The Home Depot's FY26 roadmap. A full walkthrough \u2014 including the sprint findings, prototype approaches, and usability results \u2014 is available on request.",
     ctaButtonLabel: "Let\u2019s talk",
     ctaButtonHref: "mailto:ernestleeson@gmail.com",
     nextSlug: "work/yonas-media",
@@ -183,7 +183,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "A streamlined experience for managing creative projects at scale.",
     meta: {
       company: "AKQA",
-      role: "Lead UX Designer",
+      role: "Lead Product Designer",
       projectType: "Service Design, Desktop",
       year: "2022",
     },
@@ -307,7 +307,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "Helping users find the right car faster through smarter filter design.",
     meta: {
       company: "Autotrader",
-      role: "UX Designer",
+      role: "UX Squad Lead / Interaction Designer",
       projectType: "B2C, Web & Native iOS / Android",
       year: "2019",
     },
