@@ -7,7 +7,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "Identifying and validating opportunity areas for the Path to Pro Network candidate experience.",
     meta: {
       company: "The Home Depot",
-      role: "Lead UX Designer",
+      role: "Staff UX Designer (Contract)",
       projectType: "B2B2C \u00b7 Mobile, Web",
       year: "2025\u20132026",
     },
@@ -25,7 +25,7 @@ export const caseStudies: CaseStudy[] = [
     resultPoints: [
       "Onboarding time on task reduced by 65%",
       "Candidate confidence in the job application flow improved from 1 (not confident) to 4 (very confident) out of 5",
-      "All 3 directions moved from discovery into development",
+      "All 3 directions moved into the FY26 roadmap",
     ],
     aiTools: ["NotebookLM", "Gemini", "Figma Make"],
     bentoLayout: "side-by-side",
@@ -34,6 +34,10 @@ export const caseStudies: CaseStudy[] = [
       { type: "component", componentId: "profile-builder", alt: "Profile builder", scale: 0.8 },
     ],
     sections: [
+      {
+        heading: "Earlier on Pro Network",
+        body: "Before this sprint, I simplified the Pro Network landing page: a stronger call to action, quick search, and a clearer hierarchy on the candidate cards. The data science team compared revenue before and after the changes and measured a $6M lift.",
+      },
       {
         heading: "Reading the Landscape",
         body: "With a stale product and a backlog of unresolved research, one thing missing was an understanding of how competitors were serving candidates in the trades space. I mapped what they were doing across navigation, search, profile building, and job posting quality. I also used NotebookLM to collect and synthesize all existing research \u2014 asking questions of it quickly rather than combing through documents manually.",
@@ -47,12 +51,12 @@ export const caseStudies: CaseStudy[] = [
       {
         heading: "Finding a Strong Signal",
         body: "Development had slowed around Thanksgiving, and the product manager and I saw it as the perfect time for discovery on the areas the team had flagged during the sprint.",
-        bodyExtra: "For each area, I used Gemini to help conceive the research plan \u2014 iterating on it until the approach felt right, then building competing prototype pairs in Figma Make. Each pair tested a different hypothesis about what candidates actually needed. Where testing surfaced unclear findings, we iterated and ran another cycle. We put the prototypes in front of real tradespeople, watched how they responded, synthesized the findings, and presented back to the team. The prototypes themselves were more interactive than anything Figma alone could have handled cleanly \u2014 Figma Make made the complexity manageable. The three areas consumed about two and a half weeks \u2014 work that would typically stretch across a month or more.\n\nOur bar for a meaningful signal wasn\u2019t a perfect score \u2014 it was 80% of participants responding with genuine, unprompted enthusiasm. Prompted responses carry inherent social bias and tell you what people will tolerate. Unprompted ones tell you what they actually want.\n\nOne usability finding stood out. Early prototypes asked candidates to rate their years of experience directly alongside a skill selection \u2014 two questions in close proximity. Participants consistently glossed over the experience input. Separating them into sequential steps changed the behavior immediately.\n\nOne direction generated the strongest signal of the entire study. An AI-assisted profile builder produced 100% unprompted enthusiasm across every participant. That finding directly shaped the design direction that moved into development.",
+        bodyExtra: "For each area, I used Gemini to help conceive the research plan \u2014 iterating on it until the approach felt right, then building competing prototype pairs in Figma Make. Each pair tested a different hypothesis about what candidates actually needed. Where testing surfaced unclear findings, we iterated and ran another cycle. We put the prototypes in front of real tradespeople, watched how they responded, synthesized the findings, and presented back to the team. The prototypes themselves were more interactive than anything Figma alone could have handled cleanly \u2014 Figma Make made the complexity manageable. The three areas consumed about two and a half weeks \u2014 work that would typically stretch across a month or more.\n\nOur bar for a meaningful signal wasn\u2019t a perfect score \u2014 it was 80% of participants responding with genuine, unprompted enthusiasm. Prompted responses carry inherent social bias and tell you what people will tolerate. Unprompted ones tell you what they actually want.\n\nOne usability finding stood out. Early prototypes asked candidates to rate their years of experience directly alongside a skill selection \u2014 two questions in close proximity. Participants consistently glossed over the experience input. Separating them into sequential steps changed the behavior immediately.\n\nOne direction generated the strongest signal of the entire study. An AI-assisted profile builder produced 100% unprompted enthusiasm across every participant. That finding directly shaped the direction that moved into the FY26 roadmap.",
         inlineComponent: { id: "onboarding-wireframes", afterParagraph: 1 },
         customComponent: "prototypes",
       },
     ],
-    ctaText: "This project is under active development at The Home Depot. A full walkthrough \u2014 including the sprint findings, prototype approaches, and usability results \u2014 is available on request.",
+    ctaText: "This work moved into The Home Depot's FY26 roadmap, and the vision prototype was one of the first full Figma Make prototypes the company had seen. A full walkthrough \u2014 including the sprint findings, prototype approaches, and usability results \u2014 is available on request.",
     ctaButtonLabel: "Let\u2019s talk",
     ctaButtonHref: "mailto:ernestleeson@gmail.com",
     nextSlug: "work/yonas-media",
@@ -172,7 +176,7 @@ export const caseStudies: CaseStudy[] = [
           "One thing that shifted post-launch: the team discovered they needed date ranges, not single dates. It was an eleventh-hour adjustment — though not a surprising one. Routing logic rarely lives on a single day. The benchmarks moved sharply, and the expectation is they’ll move further as the tool matures.",
       },
     ],
-    ctaText: "This is a live product, in active daily use by a team of ~20. The work isn\u2019t finished \u2014 it\u2019s in its second cycle, with a third already visible on the horizon. Want to see where this goes next?",
+    ctaText: "This is a live product, in active daily use, and Claude Code built it directly against the design guidelines file. The work isn\u2019t finished \u2014 it\u2019s in its second cycle, with a third already visible on the horizon. Want to see where this goes next?",
     ctaButtonLabel: "Let\u2019s talk",
     nextSlug: "work/akqaqt",
     nextTitle: "AKQA",
@@ -183,7 +187,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "A streamlined experience for managing creative projects at scale.",
     meta: {
       company: "AKQA",
-      role: "Lead UX Designer",
+      role: "Lead Product Designer",
       projectType: "Service Design, Desktop",
       year: "2022",
     },
@@ -307,7 +311,7 @@ export const caseStudies: CaseStudy[] = [
     subtitle: "Helping users find the right car faster through smarter filter design.",
     meta: {
       company: "Autotrader",
-      role: "UX Designer",
+      role: "UX Squad Lead / Interaction Designer",
       projectType: "B2C, Web & Native iOS / Android",
       year: "2019",
     },
