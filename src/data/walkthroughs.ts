@@ -12,7 +12,7 @@ export const walkthroughs: Walkthrough[] = [
     loomId: "",
     details:
       "Design co-chair · About two weeks · Digital map (QR) + print companion · About 1,100 people used it, over 90% on phones",
-    // link: { label: "View the live map", href: "" },
+    link: { label: "View the live map", href: "https://fall-fest-map.vercel.app/" },
   },
   {
     id: "niagara",
