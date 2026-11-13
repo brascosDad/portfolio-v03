@@ -31,6 +31,9 @@ function NameTitleBlock() {
         <span className="mx-5">·</span>
         Atlanta, GA
       </p>
+      <p className="font-sans text-[16px] leading-[1.7] mt-20">
+        {siteData.bio}
+      </p>
     </div>
   );
 }
