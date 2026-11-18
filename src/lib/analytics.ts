@@ -56,3 +56,10 @@ export function trackPrototypeInteraction(prototype: string): void {
   prototypeFired.add(prototype);
   gtag("event", "prototype_interaction", { prototype });
 }
+
+const walkthroughFired = new Set<string>();
+export function trackWalkthroughPlay(walkthrough: string): void {
+  if (walkthroughFired.has(walkthrough)) return;
+  walkthroughFired.add(walkthrough);
+  gtag("event", "walkthrough_play", { walkthrough });
+}

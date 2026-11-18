@@ -127,7 +127,7 @@ export function Hero() {
             Ernest Son
           </span>
           <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
-            Lead UX Designer
+            Lead Product Designer
           </span>
           <span className="font-sans text-[16px] lg:text-[18px] font-semibold text-text-primary" style={infoTextStyle}>
             10 years in B2C &amp; B2B/Enterprise
@@ -142,7 +142,7 @@ export function Hero() {
            the last line meets Innovator's cap-top. gap-5 condenses the previously 28px stack. */}
         <div className="md:hidden absolute z-30 right-[10px] bottom-[230px] flex flex-col items-end gap-10 font-sans text-[14px] font-bold text-text-primary">
           <span style={infoTextStyle}>Ernest Son</span>
-          <span style={infoTextStyle}>Lead UX Designer</span>
+          <span style={infoTextStyle}>Lead Product Designer</span>
           <span className="whitespace-nowrap" style={infoTextStyle}>10 yrs · B2C &amp; B2B</span>
           <span style={infoTextStyle}>Atlanta, GA</span>
         </div>

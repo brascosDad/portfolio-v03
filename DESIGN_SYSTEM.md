@@ -106,6 +106,35 @@ Pixel-based scale defined as `--spacing-{n}`.
 
 ---
 
+## Components
+
+### Walkthrough card (`walkthroughs-section.tsx`)
+
+Home page video card: 16:9 thumbnail, title, subtitle. Data in `src/data/walkthroughs.ts`.
+
+| Part           | Tokens                                                                 |
+| -------------- | ---------------------------------------------------------------------- |
+| Thumbnail      | `aspect-video rounded-md border border-border bg-bg-secondary`          |
+| Play button    | 56px mobile / 72px md+, `rounded-full bg-accent text-bg-primary`         |
+| Duration chip  | `rounded-sm bg-text-primary text-bg-primary px-10 py-5`, Caption size    |
+| Title          | Heading scale, `font-bold text-text-primary`                            |
+| Subtitle       | Body scale, `text-text-muted`                                           |
+| Details line   | Caption scale, `text-text-secondary`                                    |
+| Card gap       | `gap-20` thumbnail to text, `gap-5` title to subtitle                   |
+| Grid           | 1 column, `gap-40`; 2 columns at `md:`, `gap-30`                         |
+
+States:
+
+| State        | Behavior                                                                 |
+| ------------ | ------------------------------------------------------------------------ |
+| Not recorded | No `loomId`. Play button `bg-text-secondary`, chip reads "Coming soon", button disabled. Section hidden in production until every card is recorded. |
+| Default      | Poster (or plain surface), accent play button, duration chip.            |
+| Hover        | Play button `bg-accent-hover`, scales to 105%.                          |
+| Focus        | Inset `ring-2 ring-accent` on the thumbnail button.                     |
+| Playing      | Thumbnail swaps for the Loom embed (autoplay). Details line and optional link pill appear under the subtitle. Fires GA4 `walkthrough_play` once per video. |
+
+---
+
 ## Quick Reference
 
 ```html

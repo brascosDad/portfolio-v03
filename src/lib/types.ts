@@ -115,3 +115,18 @@ export interface HardwareEntry {
   scale?: number;
   translateY?: number;
 }
+
+export interface Walkthrough {
+  id: string;
+  title: string;
+  subtitle: string;
+  /** Display length, e.g. "4:12". Update from the recorded Loom. */
+  duration: string;
+  /** Loom share id (the part after loom.com/share/). Empty until recorded. */
+  loomId?: string;
+  /** Poster image under /public. Falls back to a plain surface. */
+  poster?: string;
+  /** One-line summary shown under the card once the video is playing. */
+  details?: string;
+  link?: { label: string; href: string };
+}
